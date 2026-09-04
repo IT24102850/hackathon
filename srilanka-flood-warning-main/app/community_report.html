@@ -187,6 +187,7 @@
             <div class="form-field">
               <label class="form-label" for="mobile-number">Mobile Number<span class="required-star">*</span></label>
               <input id="mobile-number" name="mobile_number" type="tel" class="form-input" placeholder="e.g. 0771234567" required autocomplete="tel" />
+              <span id="mobile-number-error" class="field-error" role="alert">Please enter a valid Sri Lankan mobile number.</span>
             </div>
           </div>
           <hr class="form-divider" />
@@ -298,6 +299,8 @@
         var nameInput = document.getElementById("reporter-name");
         var nameError = document.getElementById("reporter-name-error");
         var trimmedName = nameInput.value.trim();
+        var mobileInput = document.getElementById("mobile-number");
+        var mobileError = document.getElementById("mobile-number-error");
 
         if (trimmedName.length < 3) {
           nameInput.classList.add("input-error");
@@ -309,6 +312,18 @@
         // Name is valid — clear any previous error
         nameInput.classList.remove("input-error");
         nameError.classList.remove("visible");
+
+        var cleanedMobile = mobileInput.value.replace(/[ -]/g, "");
+        var validMobile = /^(0\d{9}|\+94\d{9})$/.test(cleanedMobile);
+        if (!validMobile) {
+          mobileInput.classList.add("input-error");
+          mobileError.classList.add("visible");
+          mobileInput.focus();
+          return;
+        }
+
+        mobileInput.classList.remove("input-error");
+        mobileError.classList.remove("visible");
 
         // Placeholder for FR-2.3+ submission logic
         alert("Report received. Backend submission will be implemented in FR-2.2.");
