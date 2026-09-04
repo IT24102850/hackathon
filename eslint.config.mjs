@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Legacy standalone browser implementation and its CommonJS acceptance suite.
+    "app/script.js",
+    "test_suite.js",
   ]),
 ]);
 
