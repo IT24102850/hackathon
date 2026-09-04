@@ -57,6 +57,7 @@ export function CommunityAndCentres() {
       if (response.ok) {
         const remoteReports = await response.json() as Report[];
         if (remoteReports.length) setReports(remoteReports);
+        return;
       }
       setMessage({ type: "error", text: "Reports could not be loaded from the database. Showing saved reports from this device." });
     }).catch(() => setMessage({ type: "error", text: "Reports could not be loaded from the database. Showing saved reports from this device." }));
