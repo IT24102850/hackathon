@@ -19,6 +19,7 @@ export default function HomePage() {
   const [bookingCentreId, setBookingCentreId] = useState<string | number | null>(null);
   const [bookingName, setBookingName] = useState<string>("");
   const [bookingGuests, setBookingGuests] = useState<number>(1);
+  const [bookingSubmitting, setBookingSubmitting] = useState<boolean>(false);
   const [bookingNotification, setBookingNotification] = useState<{
     type: "success" | "error";
     message: string;
@@ -37,6 +38,21 @@ export default function HomePage() {
 
     return () => window.clearTimeout(timeoutId);
   }, [bookingNotification]);
+
+  useEffect(() => {
+    fetch("/api/bookings")
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Booking data unavailable");
+        const data = (await response.json()) as { bookings: Record<string, number> };
+        setBookedSpots(data.bookings || {});
+      })
+      .catch(() => {
+        setBookingNotification({
+          type: "error",
+          message: "Live booking data is unavailable. Please try again shortly."
+        });
+      });
+  }, []);
 
   // Dynamic unique districts extracted from data (FR-3.5)
   const districts = useMemo(() => getUniqueDistricts(SAFE_CENTRES), []);
@@ -143,22 +159,50 @@ export default function HomePage() {
     setPendingBooking({ centreId: selectedBookingCentre.id, guests: requestedGuests });
   };
 
-  const confirmBooking = () => {
+  const confirmBooking = async () => {
     if (!pendingBooking || !selectedBookingCentre) return;
 
-    setBookedSpots((current) => ({
-      ...current,
-      [String(pendingBooking.centreId)]:
-        (current[String(pendingBooking.centreId)] || 0) + pendingBooking.guests
-    }));
-    setBookingNotification({
-      type: "success",
-      message: `${pendingBooking.guests} spot${pendingBooking.guests === 1 ? "" : "s"} reserved at ${selectedBookingCentre.name}.`
-    });
-    setPendingBooking(null);
-    setBookingName("");
-    setBookingGuests(1);
-    setBookingCentreId(null);
+    setBookingSubmitting(true);
+    try {
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          centreId: pendingBooking.centreId,
+          contactName: bookingName,
+          guests: pendingBooking.guests
+        })
+      });
+      const data = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        setBookingNotification({
+          type: "error",
+          message: data.error || "Unable to confirm the booking."
+        });
+        return;
+      }
+
+      setBookedSpots((current) => ({
+        ...current,
+        [String(pendingBooking.centreId)]:
+          (current[String(pendingBooking.centreId)] || 0) + pendingBooking.guests
+      }));
+      setBookingNotification({
+        type: "success",
+        message: `${pendingBooking.guests} spot${pendingBooking.guests === 1 ? "" : "s"} reserved at ${selectedBookingCentre.name}.`
+      });
+      setPendingBooking(null);
+      setBookingName("");
+      setBookingGuests(1);
+      setBookingCentreId(null);
+    } catch {
+      setBookingNotification({
+        type: "error",
+        message: "Unable to reach the booking service. Please try again."
+      });
+    } finally {
+      setBookingSubmitting(false);
+    }
   };
 
   return (
@@ -194,9 +238,10 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={confirmBooking}
+                disabled={bookingSubmitting}
                 className="px-4 py-2.5 rounded-xl bg-emerald-500 text-[#06130e] hover:bg-emerald-400 text-sm font-extrabold cursor-pointer"
               >
-                Yes, confirm reservation
+                {bookingSubmitting ? "Saving reservation..." : "Yes, confirm reservation"}
               </button>
             </div>
           </div>
