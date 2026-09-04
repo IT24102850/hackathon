@@ -1,205 +1,135 @@
-# Sri Lanka Flood & Landslide Early Warning System
+# FloodWatch LK
 
-> An open-source machine learning pipeline that predicts flood and landslide risk across all 25 districts of Sri Lanka 24–48 hours in advance, using satellite rainfall data, terrain features, and 50 years of historical disaster records.
+Live flood and landslide risk for all 25 districts of Sri Lanka, scored from
+public rainfall forecasts and turned into one instruction a household can act on.
 
-[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/YOUR_USERNAME/srilanka-flood-warning/blob/main/notebooks/01_data_collection.ipynb)
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://YOUR_APP.streamlit.app)
+SLIIT · SE3090 Software Engineering Frameworks · Assignment 2 Mini Hackathon
 
----
+- **Deployed application:** _TODO — paste the Vercel URL here_
+- **Demonstration video:** _TODO — paste the OneDrive link here_
 
-## Motivation
+## The problem
 
-In November 2025, Cyclone Ditwah struck Sri Lanka — the country's deadliest natural disaster in modern history. It caused **$4.1 billion in damage**, affected **2 million people** across all 25 districts, and destroyed over 58,000 hectares of paddy farmland. Sri Lanka's current early warning infrastructure relies on static meteorological thresholds. This project builds a data-driven, district-level risk model that learns dynamic patterns the rule-based system cannot detect.
+Sri Lanka floods twice a year on a schedule. The south-west monsoon fills the
+Kelani and Kalu river basins between May and September; the north-east monsoon
+soaks the Eastern Province from December to February. The same districts fail
+the same way each time — Ratnapura goes under water, Kegalle and Nuwara Eliya
+slide, and Kolonnawa and Kelaniya back up because the drains cannot discharge
+into a full river.
 
----
+The May 2016 landslide at Aranayake in Kegalle took more than a hundred lives.
+A year later the Kalu Ganga floods displaced hundreds of thousands across
+Ratnapura, Kalutara, Galle and Matara. **Both events were forecast.** Heavy
+rainfall warnings were published before the water arrived.
 
-## Demo
+The gap is not prediction, it is translation. Official bulletins give regional
+rainfall figures — "falls above 150 mm in the Sabaragamuwa Province" — and a
+household has to work out for itself whether that means watch, pack, or leave.
+People who have been flooded before over-read it and lose days of work. People
+who have not under-read it and leave too late.
 
-![Risk Map Screenshot](assets/demo_map.png)
+### Who it is for
 
-**Live app:** [srilanka-flood-warning.streamlit.app](https://YOUR_APP.streamlit.app)
+- Families in low-lying wards of **Ratnapura and Kalutara** along the Kalu Ganga.
+- Estate and smallholder households on the slopes of **Kegalle, Nuwara Eliya and
+  Badulla**, where a third wet day matters more than a heavy first one.
+- **Grama Niladhari officers**, who decide when to open a safe centre and would
+  rather read one ranked list than 25 separate forecasts.
 
-Enter current or forecast rainfall → the app returns a color-coded risk map of all 25 Sri Lanka districts updated in real time.
+## The solution
 
----
-
-## What it does
-
-- Ingests NASA GPM IMERG satellite rainfall, SRTM terrain elevation/slope, and historical DesInventar disaster records (1974–2024)
-- Trains an XGBoost classifier to predict flood/landslide occurrence at district-month level
-- Produces SHAP explainability plots showing which signals (rainfall accumulation, slope, prior-month saturation) drove each district's risk score
-- Renders an interactive Folium/Streamlit choropleth map of Sri Lanka colored by predicted risk level
-- Achieves **XX% precision / XX% recall** on held-out test years (2020–2023)
-
----
-
-## Architecture
+One request to the Open-Meteo forecast API returns three days of rainfall for
+all 25 district capitals. Each district is scored out of 100:
 
 ```
-Raw Data Sources
-├── NASA GPM IMERG       → monthly rainfall, 0.1° grid, 2000–2023
-├── SRTM DEM             → elevation + slope per district (30m resolution)
-├── DesInventar LKA      → 3,000+ disaster event records, 1974–2024
-└── GADM Shapefiles      → Sri Lanka district boundaries (25 districts)
-        │
-        ▼
-Feature Engineering (02_feature_engineering.ipynb)
-├── rainfall_mm          → current month satellite rainfall
-├── rainfall_prev_month  → 30-day antecedent moisture proxy
-├── rainfall_3mo_sum     → seasonal accumulation
-├── elevation_mean       → district mean elevation (m)
-├── slope_mean           → district mean slope (degrees)
-└── month_num            → seasonal signal (monsoon cycles)
-        │
-        ▼
-XGBoost Classifier (03_model_training.ipynb)
-├── scale_pos_weight=10  → handles severe class imbalance
-├── SMOTE oversampling   → augments minority (disaster) class
-└── 5-fold TimeSeriesCV  → no data leakage across time
-        │
-        ▼
-SHAP Explainability + Risk Map (04_risk_dashboard.ipynb)
-└── Streamlit App        → live district-level risk scores
+score = min(rain24h / 100mm, 1) × 50    // short burst — flash flooding
+      + min(rain72h / 250mm, 1) × 30    // saturation — landslide trigger
+      + vulnerability           × 20    // terrain, drainage, flood history
 ```
 
----
+Each score maps to one of four bands, and each band carries a specific
+instruction rather than a colour alone:
 
-## Quickstart
+| Band | Score | Action |
+| --- | --- | --- |
+| Severe | 70+ | Move now |
+| High | 50–69 | Prepare to move |
+| Moderate | 30–49 | Stay alert |
+| Low | under 30 | Normal conditions |
 
-### 1. Clone the repo
+## Main features
+
+**1. Live District Risk Board** — every district scored and ranked from live
+forecasts, with the highest-risk district raised to the top of the page.
+Searchable by district, province or river basin; filterable by minimum band;
+refreshable on demand, with proper loading, error and empty states.
+Details: [docs/feature-1-risk-board.md](docs/feature-1-risk-board.md)
+
+_TODO — Feature 2 (Oshadhi, `feature/water-report`)_
+
+_TODO — Feature 3 (Hasaranga, `feature/safe-centres`)_
+
+## Technologies used
+
+| Layer | Choice | Why |
+| --- | --- | --- |
+| Framework | Next.js 16 (App Router) | Route handlers let us keep the scoring server-side and the client thin |
+| Language | TypeScript | The scoring inputs and band ids are easy to get wrong untyped |
+| Styling | Tailwind CSS v4 | Responsive layout and dark mode without a separate stylesheet to maintain |
+| Data | [Open-Meteo](https://open-meteo.com/) forecast API | Free, no API key, accepts all 25 coordinates in one request |
+| Hosting | Vercel | Native Next.js target; route handlers deploy without configuration |
+
+## Running it locally
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/srilanka-flood-warning.git
-cd srilanka-flood-warning
+git clone https://github.com/IT24102850/hackathon.git
+cd hackathon
+npm install
+npm run dev
 ```
 
-### 2. Install dependencies
+Open <http://localhost:3000>. No environment variables or API keys are needed —
+Open-Meteo is public.
 
 ```bash
-pip install -r requirements.txt
+npm run build   # production build
+npm run lint    # eslint
 ```
 
-Or run directly in Google Colab — click the badge at the top of this README.
+> **On the SLIIT network,** `registry.npmjs.org` is blocked by TLS
+> interception, which makes `npm install` fail with `403 Forbidden`. Install
+> through the mirror instead:
+> `npm install --registry=https://registry.yarnpkg.com`
 
-### 3. Download the data
+## Team and contributions
 
-```bash
-python scripts/download_data.py
-```
+> Written by each member in their own words, as the assignment requires.
 
-This fetches:
-- NASA GPM IMERG monthly rainfall for Sri Lanka bounding box (`79.5°E–81.9°E, 5.9°N–9.8°N`)
-- GADM district shapefile for Sri Lanka
-- Prompts you to place the DesInventar CSV (manual download required — see [Data Sources](#data-sources))
+| Member | Student ID | Branch | Contribution |
+| --- | --- | --- | --- |
+| Hasiru | _TODO_ | `feature/risk-board` | _TODO — in your own words_ |
+| Oshadhi | _TODO_ | `feature/water-report` | _TODO — in your own words_ |
+| Hasaranga | _TODO_ | `feature/safe-centres` | _TODO — in your own words_ |
 
-### 4. Run the notebooks in order
+## AI usage declaration
 
-| Notebook | What it does |
-|---|---|
-| `01_data_collection.ipynb` | Downloads and validates all raw data |
-| `02_feature_engineering.ipynb` | Merges sources into district-month feature table |
-| `03_model_training.ipynb` | Trains XGBoost, evaluates on test years, exports model |
-| `04_risk_dashboard.ipynb` | SHAP plots, Folium map, Streamlit app preview |
+> Required by section 2.3 of the assignment. Every member must be able to
+> explain the code attributed to them. **Check this list is complete and
+> accurate before submitting** — an undeclared dependency found during the demo
+> is treated as a breach.
 
-### 5. Launch the Streamlit app
+- **Claude (Claude Code)** — generated the initial component structure, the
+  `/api/risk` route handler and the Tailwind styling for the district risk
+  board. We set the scoring weights and the per-district vulnerability values
+  ourselves, verified the formula against the two worked examples in
+  [docs/feature-1-risk-board.md](docs/feature-1-risk-board.md), and tested the
+  error and empty states by blocking the API in devtools.
 
-```bash
-streamlit run app/app.py
-```
+_TODO — add a line for every other AI tool any member used, or state
+explicitly that no others were used._
 
----
+## Disclaimer
 
-## Data Sources
-
-All data used in this project is free and publicly available.
-
-| Dataset | Source | Coverage | License |
-|---|---|---|---|
-| GPM IMERG Monthly Rainfall | [NASA Earthdata](https://gpm.nasa.gov/data) | Global, 2000–present | NASA Open Data |
-| SRTM Digital Elevation Model | [USGS EarthExplorer](https://earthexplorer.usgs.gov/) | Global, 30m | Public Domain |
-| DesInventar Disaster Records | [desinventar.net (LKA)](https://www.desinventar.net/DesInventar/profiletab.jsp?countrycode=lka) | Sri Lanka, 1974–2024 | UNDRR Open |
-| GADM District Boundaries | [gadm.org](https://gadm.org/download_country.html) | Sri Lanka, Level 1 | Academic use |
-| World Bank Flood Extent Maps | [WB Data Catalog](https://datacatalog.worldbank.org/search/dataset/0038275) | Sri Lanka, 2003–2014 | CC BY 4.0 |
-
----
-
-## Results
-
-> *(Update this table after you train your model)*
-
-| Metric | Score |
-|---|---|
-| Precision (disaster class) | — |
-| Recall (disaster class) | — |
-| F1 Score | — |
-| AUC-ROC | — |
-| Test period | 2020–2023 |
-
-**Top predictive features (SHAP):**
-1. `rainfall_3mo_sum` — 3-month cumulative rainfall
-2. `slope_mean` — terrain slope (landslide proxy)
-3. `rainfall_prev_month` — antecedent soil moisture
-4. `month_num` — monsoon seasonality
-
----
-
-## Repo Structure
-
-```
-srilanka-flood-warning/
-├── notebooks/
-│   ├── 01_data_collection.ipynb
-│   ├── 02_feature_engineering.ipynb
-│   ├── 03_model_training.ipynb
-│   └── 04_risk_dashboard.ipynb
-├── app/
-│   └── app.py                  # Streamlit dashboard
-├── scripts/
-│   └── download_data.py        # Automated data fetcher
-├── data/
-│   ├── raw/                    # Downloaded source files (gitignored)
-│   └── processed/              # Feature table, train/test splits
-├── models/
-│   └── xgb_flood_model.pkl     # Trained model artifact
-├── assets/
-│   └── demo_map.png            # Screenshot for README
-├── requirements.txt
-├── LICENSE
-└── README.md
-```
-
----
-
-## Limitations & Future Work
-
-- Current model uses district-level aggregation. A grid-level (0.1°) model would give finer spatial resolution
-- Elevation/slope features are static — adding NDVI (vegetation cover) would improve landslide prediction
-- Real-time pipeline not yet implemented — currently requires manual rainfall input
-- Model trained on data through 2023; Cyclone Ditwah (Nov 2025) not yet in training set — a strong validation opportunity
-
----
-
-## Acknowledgements
-
-- [Sri Lanka Disaster Management Centre (DMC)](http://www.dmc.gov.lk/) for maintaining public disaster records
-- [NASA GPM Mission](https://gpm.nasa.gov/) for open-access global precipitation data
-- UNDRR for the DesInventar open disaster database
-- Research by [Udayanga et al. (2018)](https://www.mdpi.com/2072-4292/10/3/448) on Sri Lanka flood mapping using satellite data — a direct technical inspiration for this project
-
----
-
-## Author
-
-**[Your Name]**
-Undergraduate, [Your University]
-[linkedin.com/in/yourprofile](https://linkedin.com) · [your.email@gmail.com](mailto:your.email@gmail.com)
-
-*Built as part of a portfolio project demonstrating applied ML for disaster risk reduction in Sri Lanka.*
-
----
-
-## License
-
-MIT License — see [LICENSE](LICENSE) for details. Free to use, adapt, and build upon with attribution.
+This is a student project. Risk scores are our own calculation, not an official
+forecast, and do not replace warnings from the Disaster Management Centre or the
+National Building Research Organisation. In an emergency call **117**.
