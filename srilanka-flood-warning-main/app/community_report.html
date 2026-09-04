@@ -154,6 +154,41 @@
         border-color: rgba(255, 51, 102, 0.6);
         box-shadow: 0 0 0 3px rgba(255, 51, 102, 0.12);
       }
+      .success-message {
+        background: rgba(146,254,157,0.1);
+        border: 1px solid rgba(146,254,157,0.35);
+        border-radius: 10px;
+        color: #92fe9d;
+        display: none;
+        font-size: 0.85rem;
+        margin: 1rem 0 0;
+        padding: 0.75rem 1rem;
+      }
+      .success-message.visible { display: block; }
+      .reports-section { margin-top: 2rem; }
+      .reports-heading { color: #ffffff; font-size: 1.35rem; margin-bottom: 1rem; }
+      .empty-state { color: #8a8f9e; font-size: 0.9rem; }
+      .report-list { display: grid; gap: 1rem; }
+      .submitted-report {
+        background: rgba(10,15,26,0.55);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 1rem;
+      }
+      .submitted-report-header {
+        align-items: baseline;
+        display: flex;
+        gap: 0.75rem;
+        justify-content: space-between;
+        margin-bottom: 0.6rem;
+      }
+      .submitted-report-title { color: #ffffff; font-weight: 600; }
+      .submitted-report-time { color: #8a8f9e; font-size: 0.78rem; }
+      .submitted-report-meta { color: #cbd5e1; font-size: 0.85rem; margin-bottom: 0.55rem; }
+      .submitted-report-description { color: #8a8f9e; font-size: 0.88rem; line-height: 1.5; margin: 0; }
+      @media (max-width: 600px) {
+        .submitted-report-header { align-items: flex-start; flex-direction: column; gap: 0.25rem; }
+      }
     </style>
   </head>
   <body>
@@ -261,7 +296,13 @@
             </div>
           </div>
           <button type="submit" id="submit-btn" class="submit-btn">Submit Field Report</button>
+          <div id="success-message" class="success-message" role="status" aria-live="polite"></div>
         </form>
+        <section class="reports-section" aria-labelledby="reports-heading">
+          <h2 id="reports-heading" class="reports-heading">Submitted Reports</h2>
+          <div id="report-list" class="report-list"></div>
+          <p id="empty-state" class="empty-state">No community water reports yet.</p>
+        </section>
       </div>
     </section>
     <footer class="footer">
@@ -287,9 +328,15 @@
       const descriptionTextarea = document.getElementById("description");
       const charCountEl = document.getElementById("char-count");
       const charCounterEl = document.getElementById("char-counter");
+      const reportForm = document.getElementById("community-report-form");
+      const reportList = document.getElementById("report-list");
+      const emptyState = document.getElementById("empty-state");
+      const successMessage = document.getElementById("success-message");
       const MAX_CHARS = 300;
-      descriptionTextarea.addEventListener("input", function () {
-        const count = this.value.length;
+      const REPORTS_STORAGE_KEY = "sl-flood-warning-community-reports";
+
+      function updateDescriptionCounter() {
+        const count = descriptionTextarea.value.length;
         charCountEl.textContent = count;
         charCounterEl.classList.remove("near-limit", "at-limit");
         if (count >= MAX_CHARS) {
@@ -297,8 +344,89 @@
         } else if (count >= MAX_CHARS * 0.85) {
           charCounterEl.classList.add("near-limit");
         }
-      });
-      document.getElementById("community-report-form").addEventListener("submit", function (e) {
+      }
+
+      descriptionTextarea.addEventListener("input", updateDescriptionCounter);
+
+      function loadReports() {
+        try {
+          const storedReports = JSON.parse(localStorage.getItem(REPORTS_STORAGE_KEY) || "[]");
+          return Array.isArray(storedReports) ? storedReports.filter(function (report) {
+            return report && typeof report === "object" &&
+              typeof report.timestamp === "string" &&
+              Number.isFinite(new Date(report.timestamp).getTime()) &&
+              typeof report.reporterName === "string" &&
+              typeof report.district === "string" &&
+              typeof report.town === "string" &&
+              typeof report.waterDepthLabel === "string" &&
+              typeof report.description === "string";
+          }) : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function saveReports(reports) {
+        try {
+          localStorage.setItem(REPORTS_STORAGE_KEY, JSON.stringify(reports));
+          return true;
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function createReportText(className, text) {
+        const element = document.createElement("p");
+        element.className = className;
+        element.textContent = text;
+        return element;
+      }
+
+      function formatReportTimestamp(timestamp) {
+        return new Intl.DateTimeFormat("en-LK", {
+          timeZone: "Asia/Colombo",
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit"
+        }).format(new Date(timestamp));
+      }
+
+      function renderReports() {
+        const reports = loadReports().sort(function (first, second) {
+          return new Date(second.timestamp).getTime() - new Date(first.timestamp).getTime();
+        });
+        reportList.replaceChildren();
+        emptyState.hidden = reports.length > 0;
+
+        reports.forEach(function (report) {
+          const card = document.createElement("article");
+          card.className = "submitted-report";
+
+          const header = document.createElement("div");
+          header.className = "submitted-report-header";
+          const title = document.createElement("span");
+          title.className = "submitted-report-title";
+          title.textContent = report.town + " - " + report.district;
+          const time = document.createElement("time");
+          time.className = "submitted-report-time";
+          time.dateTime = report.timestamp;
+          time.textContent = formatReportTimestamp(report.timestamp);
+          header.append(title, time);
+
+          card.append(
+            header,
+            createReportText("submitted-report-meta", report.waterDepthLabel + " | Reported by " + report.reporterName),
+            createReportText("submitted-report-description", report.description)
+          );
+          reportList.appendChild(card);
+        });
+      }
+
+      renderReports();
+
+      reportForm.addEventListener("submit", function (e) {
         e.preventDefault();
 
         var nameInput = document.getElementById("reporter-name");
@@ -387,8 +515,30 @@
           return;
         }
 
-        // Placeholder for FR-2.3+ submission logic
-        alert("Report received. Backend submission will be implemented in FR-2.2.");
+        const report = {
+          reporterName: trimmedName,
+          mobileNumber: mobileInput.value.trim(),
+          district: districtInput.value,
+          town: townInput.value.trim(),
+          waterDepth: waterDepthInput.value,
+          waterDepthLabel: waterDepthInput.options[waterDepthInput.selectedIndex].textContent,
+          description: trimmedDescription,
+          timestamp: new Date().toISOString()
+        };
+        const reports = loadReports();
+        reports.push(report);
+
+        if (!saveReports(reports)) {
+          successMessage.textContent = "Unable to save the report in this browser.";
+          successMessage.classList.add("visible");
+          return;
+        }
+
+        renderReports();
+        reportForm.reset();
+        updateDescriptionCounter();
+        successMessage.textContent = "Water report submitted successfully!";
+        successMessage.classList.add("visible");
       });
     </script>
   </body>
