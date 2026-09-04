@@ -15,14 +15,31 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedDistrict, setSelectedDistrict] = useState<string>("ALL");
   const [spaceOnly, setSpaceOnly] = useState<boolean>(false);
+  const [bookedSpots, setBookedSpots] = useState<Record<string, number>>({});
+  const [bookingCentreId, setBookingCentreId] = useState<string | number | null>(null);
+  const [bookingName, setBookingName] = useState<string>("");
+  const [bookingGuests, setBookingGuests] = useState<number>(1);
+  const [bookingMessage, setBookingMessage] = useState<string>("");
 
   // Dynamic unique districts extracted from data (FR-3.5)
   const districts = useMemo(() => getUniqueDistricts(SAFE_CENTRES), []);
 
   // Combined multi-filtering (FR-3.4, FR-3.5, FR-3.6)
+  const centresWithBookings = useMemo(
+    () =>
+      SAFE_CENTRES.map((centre) => ({
+        ...centre,
+        occupancy: Math.min(
+          centre.capacity,
+          centre.occupancy + (bookedSpots[String(centre.id)] || 0)
+        )
+      })),
+    [bookedSpots]
+  );
+
   const filteredCentres = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return SAFE_CENTRES.filter((centre) => {
+    return centresWithBookings.filter((centre) => {
       // FR-3.4 Search
       const matchesSearch =
         !q ||
@@ -40,7 +57,7 @@ export default function HomePage() {
 
       return matchesSearch && matchesDistrict && matchesSpace;
     });
-  }, [searchQuery, selectedDistrict, spaceOnly]);
+  }, [searchQuery, selectedDistrict, spaceOnly, centresWithBookings]);
 
   // FR-3.7 Summary metrics
   const summary = useMemo(
@@ -77,6 +94,42 @@ export default function HomePage() {
       const targetTop = el.getBoundingClientRect().top + window.pageYOffset - navOffset;
       window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
     }
+  };
+
+  const selectedBookingCentre = bookingCentreId === null
+    ? null
+    : centresWithBookings.find((centre) => centre.id === bookingCentreId) || null;
+
+  const submitBooking = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedBookingCentre) return;
+
+    const placesFree = calculatePlacesFree(
+      selectedBookingCentre.capacity,
+      selectedBookingCentre.occupancy
+    );
+    const requestedGuests = Math.floor(Number(bookingGuests));
+
+    if (!bookingName.trim() || requestedGuests < 1 || requestedGuests > placesFree) {
+      setBookingMessage(
+        placesFree === 0
+          ? "This centre is full. Please choose another centre."
+          : `Enter between 1 and ${placesFree} available spot${placesFree === 1 ? "" : "s"}.`
+      );
+      return;
+    }
+
+    setBookedSpots((current) => ({
+      ...current,
+      [String(selectedBookingCentre.id)]:
+        (current[String(selectedBookingCentre.id)] || 0) + requestedGuests
+    }));
+    setBookingMessage(
+      `${requestedGuests} spot${requestedGuests === 1 ? "" : "s"} reserved at ${selectedBookingCentre.name}.`
+    );
+    setBookingName("");
+    setBookingGuests(1);
+    setBookingCentreId(null);
   };
 
   return (
@@ -308,6 +361,14 @@ export default function HomePage() {
               <div className="text-xs text-slate-400 uppercase tracking-wider">Total Capacity</div>
             </div>
           </div>
+          {bookingMessage && (
+            <div
+              role="status"
+              className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-sm text-center"
+            >
+              {bookingMessage}
+            </div>
+          )}
 
           {/* FR-3.1, FR-3.2, FR-3.3, FR-3.8 Centres Grid */}
           {filteredCentres.length === 0 ? (
@@ -331,6 +392,7 @@ export default function HomePage() {
               {filteredCentres.map((centre) => {
                 const info = getOccupancyInfo(centre);
                 const cleanPhone = centre.phone.replace(/[^0-9+]/g, "");
+                const isBookingCentre = bookingCentreId === centre.id;
 
                 return (
                   <article
@@ -420,6 +482,59 @@ export default function HomePage() {
                         <span>📞</span> {centre.phone}
                       </a>
                     </div>
+
+                    <div className="pt-1">
+                      {info.isFull ? (
+                        <span className="text-xs text-rose-300">Booking unavailable — centre is full.</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBookingCentreId(isBookingCentre ? null : centre.id);
+                            setBookingMessage("");
+                          }}
+                          className="w-full px-3 py-2 rounded-lg bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30 text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          {isBookingCentre ? "Close booking form" : "Reserve available spots"}
+                        </button>
+                      )}
+                    </div>
+
+                    {isBookingCentre && !info.isFull && (
+                      <form onSubmit={submitBooking} className="p-3 rounded-xl bg-[#0a0f1a]/80 border border-emerald-500/25 space-y-2">
+                        <p className="text-xs text-slate-300">
+                          Reserve up to <strong className="text-emerald-300">{info.placesFree}</strong> currently available spot{info.placesFree === 1 ? "" : "s"}.
+                        </p>
+                        <label className="block text-xs text-slate-400">
+                          Contact name
+                          <input
+                            required
+                            value={bookingName}
+                            onChange={(event) => setBookingName(event.target.value)}
+                            placeholder="Your name"
+                            className="mt-1 w-full px-3 py-2 rounded-lg bg-[#141928] border border-white/15 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-400"
+                          />
+                        </label>
+                        <label className="block text-xs text-slate-400">
+                          Number of people
+                          <input
+                            required
+                            type="number"
+                            min={1}
+                            max={info.placesFree}
+                            value={bookingGuests}
+                            onChange={(event) => setBookingGuests(Number(event.target.value))}
+                            className="mt-1 w-full px-3 py-2 rounded-lg bg-[#141928] border border-white/15 text-white focus:outline-none focus:border-emerald-400"
+                          />
+                        </label>
+                        <button
+                          type="submit"
+                          className="w-full px-3 py-2 rounded-lg bg-emerald-500 text-[#06130e] text-xs font-extrabold hover:bg-emerald-400 transition-colors cursor-pointer"
+                        >
+                          Confirm reservation
+                        </button>
+                      </form>
+                    )}
                   </article>
                 );
               })}
