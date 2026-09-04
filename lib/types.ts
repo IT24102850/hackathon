@@ -1,5 +1,5 @@
 /**
- * Shared types for the Live District Risk Board.
+ * Shared types for the Live District Risk Board & Safe Centres Registry.
  */
 
 /** The four risk bands, ordered least to most severe in BAND_ORDER. */
@@ -47,4 +47,31 @@ export interface RiskBoardResponse {
 /** Error payload returned by GET /api/risk when the forecast is unavailable. */
 export interface RiskBoardError {
   error: string;
+}
+
+/**
+ * FR-3.1: Registered Safe Evacuation Centre
+ * Name, type, town, district, phone number, capacity, and current occupancy.
+ */
+export interface SafeCentre {
+  id: string | number;
+  name: string;
+  type: string;
+  town: string;
+  district: string;
+  phone: string;
+  capacity: number;
+  occupancy: number;
+  riverBasin?: string;
+}
+
+/**
+ * FR-3.2, FR-3.3: Occupancy & Remaining Capacity Calculation Info
+ */
+export interface CentreOccupancyInfo {
+  placesFree: number;
+  isFull: boolean;
+  percentage: number;
+  statusLabel: string;
+  barColorClass: string;
 }
