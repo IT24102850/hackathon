@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -138,6 +138,20 @@
         border-bottom: 2px solid rgba(0,201,255,0.5);
         padding-bottom: 2px;
       }
+      /* FR-2.2 — Name validation error styles */
+      .field-error {
+        color: #ff3366;
+        font-size: 0.78rem;
+        margin-top: 0.25rem;
+        display: none;
+      }
+      .field-error.visible {
+        display: block;
+      }
+      .form-input.input-error {
+        border-color: rgba(255, 51, 102, 0.6);
+        box-shadow: 0 0 0 3px rgba(255, 51, 102, 0.12);
+      }
     </style>
   </head>
   <body>
@@ -168,6 +182,7 @@
             <div class="form-field">
               <label class="form-label" for="reporter-name">Reporter Name<span class="required-star">*</span></label>
               <input id="reporter-name" name="reporter_name" type="text" class="form-input" placeholder="e.g. Chamara Perera" required autocomplete="name" />
+              <span id="reporter-name-error" class="field-error" role="alert">Name must be at least 3 characters.</span>
             </div>
             <div class="form-field">
               <label class="form-label" for="mobile-number">Mobile Number<span class="required-star">*</span></label>
@@ -278,6 +293,24 @@
       });
       document.getElementById("community-report-form").addEventListener("submit", function (e) {
         e.preventDefault();
+
+        // FR-2.2 — Reporter Name validation (trim then check length >= 3)
+        var nameInput = document.getElementById("reporter-name");
+        var nameError = document.getElementById("reporter-name-error");
+        var trimmedName = nameInput.value.trim();
+
+        if (trimmedName.length < 3) {
+          nameInput.classList.add("input-error");
+          nameError.classList.add("visible");
+          nameInput.focus();
+          return; // stop here — do not proceed
+        }
+
+        // Name is valid — clear any previous error
+        nameInput.classList.remove("input-error");
+        nameError.classList.remove("visible");
+
+        // Placeholder for FR-2.3+ submission logic
         alert("Report received. Backend submission will be implemented in FR-2.2.");
       });
     </script>
