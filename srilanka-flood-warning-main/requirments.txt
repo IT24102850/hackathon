@@ -13,3 +13,4 @@ streamlit-lottie
 requests
 xarray
 jinja2
+pymongo

@@ -83,6 +83,21 @@ pip install -r requirments.txt
 
 This project does not use Node.js or npm. There is no `package.json`; install the Python dependencies above instead.
 
+### MongoDB configuration
+
+Community Water Reports are stored through the Python server in MongoDB. Set the connection string before starting the application; do not commit it to the repository:
+
+```powershell
+$env:MONGODB_URI = "mongodb+srv://<username>:<password>@<cluster>/<database>?retryWrites=true&w=majority"
+$env:MONGODB_DATABASE = "srilanka_flood_warning"
+$env:MONGODB_COLLECTION = "community_reports"
+python run.py
+```
+
+On the first report API request, the server creates the `community_reports` collection and an index on `timestamp` for newest-first report loading. MongoDB creates the database when the first report is saved.
+
+The report page uses the server's `/api/community-reports` endpoint. If `MONGODB_URI` is not configured or the database is unavailable, reports cannot be loaded or saved and no credentials are exposed to the browser.
+
 Or run directly in Google Colab — click the badge at the top of this README.
 
 ### 3. Download the data

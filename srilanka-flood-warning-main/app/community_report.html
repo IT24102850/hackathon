@@ -349,7 +349,7 @@
       const reportResultStatus = document.getElementById("report-result-status");
       const successMessage = document.getElementById("success-message");
       const MAX_CHARS = 300;
-      const REPORTS_STORAGE_KEY = "sl-flood-warning-community-reports";
+      const REPORTS_API_URL = "/api/community-reports";
 
       function updateDescriptionCounter() {
         const count = descriptionTextarea.value.length;
@@ -364,28 +364,25 @@
 
       descriptionTextarea.addEventListener("input", updateDescriptionCounter);
 
-      function loadReports() {
+      async function loadReports() {
         try {
-          const storedReports = JSON.parse(localStorage.getItem(REPORTS_STORAGE_KEY) || "[]");
-          return Array.isArray(storedReports) ? storedReports.filter(function (report) {
-            return report && typeof report === "object" &&
-              typeof report.timestamp === "string" &&
-              Number.isFinite(new Date(report.timestamp).getTime()) &&
-              typeof report.reporterName === "string" &&
-              typeof report.district === "string" &&
-              typeof report.town === "string" &&
-              typeof report.waterDepthLabel === "string" &&
-              typeof report.description === "string";
-          }) : [];
+          const response = await fetch(REPORTS_API_URL);
+          if (!response.ok) throw new Error("Unable to load reports");
+          const reports = await response.json();
+          return Array.isArray(reports) ? reports : [];
         } catch (error) {
           return [];
         }
       }
 
-      function saveReports(reports) {
+      async function saveReport(report) {
         try {
-          localStorage.setItem(REPORTS_STORAGE_KEY, JSON.stringify(reports));
-          return true;
+          const response = await fetch(REPORTS_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(report)
+          });
+          return response.ok;
         } catch (error) {
           return false;
         }
@@ -409,8 +406,8 @@
         }).format(new Date(timestamp));
       }
 
-      function renderReports() {
-        const reports = loadReports().sort(function (first, second) {
+      async function renderReports() {
+        const reports = (await loadReports()).sort(function (first, second) {
           return new Date(second.timestamp).getTime() - new Date(first.timestamp).getTime();
         });
         const searchTerm = reportSearchInput.value.trim().toLowerCase();
@@ -456,7 +453,7 @@
       renderReports();
       reportSearchInput.addEventListener("input", renderReports);
 
-      reportForm.addEventListener("submit", function (e) {
+      reportForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
         var nameInput = document.getElementById("reporter-name");
@@ -555,11 +552,8 @@
           description: trimmedDescription,
           timestamp: new Date().toISOString()
         };
-        const reports = loadReports();
-        reports.push(report);
-
-        if (!saveReports(reports)) {
-          successMessage.textContent = "Unable to save the report in this browser.";
+        if (!await saveReport(report)) {
+          successMessage.textContent = "Unable to save the report to MongoDB.";
           successMessage.classList.add("visible");
           return;
         }
