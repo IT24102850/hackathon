@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDatabase } from "@/lib/mongodb";
-import { SAFE_CENTRES } from "@/lib/safe-centres";
+import { getSafeCentres } from "@/lib/safe-centres-db";
 
 const BOOKINGS_COLLECTION = "centre_bookings";
 
@@ -9,10 +9,6 @@ type BookingRequest = {
   contactName: string;
   guests: number;
 };
-
-function getCentre(centreId: string) {
-  return SAFE_CENTRES.find((centre) => String(centre.id) === centreId);
-}
 
 export async function GET() {
   try {
@@ -45,11 +41,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid booking request." }, { status: 400 });
   }
 
-  const centre = getCentre(String(payload.centreId));
   const contactName = payload.contactName?.trim();
   const guests = Math.floor(Number(payload.guests));
 
-  if (!centre || !contactName || !Number.isFinite(guests) || guests < 1) {
+  if (!contactName || !Number.isFinite(guests) || guests < 1) {
     return NextResponse.json(
       { error: "Provide a valid centre, contact name, and guest count." },
       { status: 400 }
@@ -57,6 +52,12 @@ export async function POST(request: Request) {
   }
 
   try {
+    const centres = await getSafeCentres();
+    const centre = centres.find((item) => String(item.id) === String(payload.centreId));
+    if (!centre) {
+      return NextResponse.json({ error: "The selected centre was not found." }, { status: 400 });
+    }
+
     const db = await getDatabase();
     const result = await db.collection(BOOKINGS_COLLECTION).aggregate([
       { $match: { centreId: String(centre.id), status: "confirmed" } },

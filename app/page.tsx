@@ -15,6 +15,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedDistrict, setSelectedDistrict] = useState<string>("ALL");
   const [spaceOnly, setSpaceOnly] = useState<boolean>(false);
+  const [centres, setCentres] = useState(SAFE_CENTRES);
   const [bookedSpots, setBookedSpots] = useState<Record<string, number>>({});
   const [bookingCentreId, setBookingCentreId] = useState<string | number | null>(null);
   const [bookingName, setBookingName] = useState<string>("");
@@ -28,6 +29,21 @@ export default function HomePage() {
     centreId: string | number;
     guests: number;
   } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/centres")
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Centre data unavailable");
+        const data = (await response.json()) as { centres: typeof SAFE_CENTRES };
+        setCentres(data.centres);
+      })
+      .catch(() => {
+        setBookingNotification({
+          type: "error",
+          message: "Live centre data is unavailable. Showing the saved sample catalogue."
+        });
+      });
+  }, []);
 
   useEffect(() => {
     if (!bookingNotification) return;
@@ -55,19 +71,19 @@ export default function HomePage() {
   }, []);
 
   // Dynamic unique districts extracted from data (FR-3.5)
-  const districts = useMemo(() => getUniqueDistricts(SAFE_CENTRES), []);
+  const districts = useMemo(() => getUniqueDistricts(centres), [centres]);
 
   // Combined multi-filtering (FR-3.4, FR-3.5, FR-3.6)
   const centresWithBookings = useMemo(
     () =>
-      SAFE_CENTRES.map((centre) => ({
+      centres.map((centre) => ({
         ...centre,
         occupancy: Math.min(
           centre.capacity,
           centre.occupancy + (bookedSpots[String(centre.id)] || 0)
         )
       })),
-    [bookedSpots]
+    [bookedSpots, centres]
   );
 
   const filteredCentres = useMemo(() => {
@@ -457,7 +473,7 @@ export default function HomePage() {
           <div className="p-4 rounded-xl bg-gradient-to-r from-cyan-500/10 via-emerald-500/5 to-transparent border border-cyan-500/20 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
             <div>
               <div className="text-xl sm:text-2xl font-bold text-white">
-                {summary.matchingCount} <span className="text-xs text-slate-400 font-normal">of {SAFE_CENTRES.length}</span>
+                {summary.matchingCount} <span className="text-xs text-slate-400 font-normal">of {centres.length}</span>
               </div>
               <div className="text-xs text-slate-400 uppercase tracking-wider">Centres Matching</div>
             </div>
