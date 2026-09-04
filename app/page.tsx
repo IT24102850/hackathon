@@ -117,7 +117,9 @@ export default function HomePage() {
       setBookingNotification({
         type: "error",
         message:
-          placesFree === 0
+          !bookingName.trim()
+            ? "Enter a contact name before confirming your reservation."
+            : placesFree === 0
             ? "This centre is full. Please choose another centre."
             : `Enter between 1 and ${placesFree} available spot${placesFree === 1 ? "" : "s"}.`
       });
@@ -369,9 +371,9 @@ export default function HomePage() {
           </div>
           {bookingNotification && (
             <div
-              role="status"
+              role={bookingNotification.type === "error" ? "alert" : "status"}
               aria-live="polite"
-              className={`p-3 rounded-xl border text-sm text-center flex items-center justify-center gap-3 ${
+              className={`fixed top-4 right-4 z-[100] max-w-[calc(100%-2rem)] sm:max-w-md p-4 rounded-xl border text-sm shadow-2xl flex items-center gap-3 ${
                 bookingNotification.type === "success"
                   ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300"
                   : "bg-rose-500/10 border-rose-500/25 text-rose-300"
@@ -530,7 +532,6 @@ export default function HomePage() {
                         <label className="block text-xs text-slate-400">
                           Contact name
                           <input
-                            required
                             value={bookingName}
                             onChange={(event) => setBookingName(event.target.value)}
                             placeholder="Your name"
@@ -540,10 +541,8 @@ export default function HomePage() {
                         <label className="block text-xs text-slate-400">
                           Number of people
                           <input
-                            required
                             type="number"
                             min={1}
-                            max={info.placesFree}
                             value={bookingGuests}
                             onChange={(event) => setBookingGuests(Number(event.target.value))}
                             className="mt-1 w-full px-3 py-2 rounded-lg bg-[#141928] border border-white/15 text-white focus:outline-none focus:border-emerald-400"
