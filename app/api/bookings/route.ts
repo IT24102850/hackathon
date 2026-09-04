@@ -75,6 +75,16 @@ export async function POST(request: Request) {
 
     await db.collection(BOOKINGS_COLLECTION).insertOne({
       centreId: String(centre.id),
+      centre: {
+        name: centre.name,
+        type: centre.type,
+        town: centre.town,
+        district: centre.district,
+        phone: centre.phone,
+        capacity: centre.capacity,
+        baseOccupancy: centre.occupancy,
+        riverBasin: centre.riverBasin
+      },
       contactName,
       guests,
       status: "confirmed",
