@@ -85,7 +85,7 @@ The scenario selector scales the forecast rainfall before scoring:
 | Scenario | Multiplier | What it represents |
 | --- | --- | --- |
 | Live forecast | ×1 | The real Open-Meteo forecast. The default, always. |
-| Simulated monsoon | ×6 | A heavy south-west monsoon week. Spreads districts across all four bands. |
+| Simulated monsoon | ×8 | A heavy south-west monsoon week. Chosen by testing every multiplier from 4 to 14 against a live forecast and keeping the one that filled all four bands at once. |
 | Simulated extreme event | ×14 | The scale of the May 2017 Kalu Ganga floods. Pushes the wet zone to Severe. |
 
 Two things make this honest rather than a fake:

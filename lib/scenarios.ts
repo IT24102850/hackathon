@@ -9,6 +9,10 @@
  * A scenario multiplies the forecast rainfall before scoring. It changes only
  * the input; the formula in lib/risk.ts is untouched. Anything other than
  * `live` is simulated and the UI must say so on screen.
+ *
+ * The x8 monsoon figure was chosen by running every multiplier from 4 to 14
+ * against a live forecast and picking the one that put districts in all four
+ * bands at once. The exact split shifts with the day's weather.
  */
 
 export interface Scenario {
@@ -30,9 +34,9 @@ export const SCENARIOS: Scenario[] = [
   {
     id: "monsoon",
     label: "Simulated monsoon",
-    multiplier: 6,
+    multiplier: 8,
     description:
-      "Today's forecast with rainfall multiplied by 6, roughly a heavy south-west monsoon week.",
+      "Today's forecast with rainfall multiplied by 8, roughly a heavy south-west monsoon week.",
   },
   {
     id: "extreme",
