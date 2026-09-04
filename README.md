@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/YOUR_USERNAME/srilanka-flood-warning/blob/main/notebooks/01_data_collection.ipynb)
-[![GitHub Pages](https://img.shields.io/badge/demo-GitHub%20Pages-222222?logo=github)](https://it24102850.github.io/hackathon/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://YOUR_APP.streamlit.app)
 
 ---
 
@@ -19,18 +19,9 @@ In November 2025, Cyclone Ditwah struck Sri Lanka — the country's deadliest na
 
 ![Risk Map Screenshot](assets/demo_map.png)
 
-**Public app URL after deployment:** [it24102850.github.io/hackathon](https://it24102850.github.io/hackathon/)
+**Live app:** [srilanka-flood-warning.streamlit.app](https://YOUR_APP.streamlit.app)
 
 Enter current or forecast rainfall → the app returns a color-coded risk map of all 25 Sri Lanka districts updated in real time.
-
-### Static-site deployment
-
-The public landing page is deployed by `.github/workflows/deploy-pages.yml` from the
-repository root. To enable it for a fork, go to **Settings → Pages**, select
-**GitHub Actions** as the build source, and push to the default branch. The site
-then loads for unauthenticated visitors at:
-
-`https://<owner>.github.io/<repository>/`
 
 ---
 
