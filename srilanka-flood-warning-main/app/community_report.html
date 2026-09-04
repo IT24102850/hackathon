@@ -540,6 +540,52 @@
         successMessage.textContent = "Water report submitted successfully!";
         successMessage.classList.add("visible");
       });
+
+      function clearLiveFieldError(field, error) {
+        field.classList.remove("input-error");
+        field.removeAttribute("aria-invalid");
+        field.removeAttribute("aria-describedby");
+        error.textContent = "";
+        error.classList.remove("visible");
+      }
+
+      document.getElementById("reporter-name").addEventListener("input", function () {
+        if (this.value.trim().length >= 3) {
+          clearLiveFieldError(this, document.getElementById("name-error"));
+        }
+      });
+
+      document.getElementById("mobile-number").addEventListener("input", function () {
+        const cleanedMobile = this.value.replace(/[ -]/g, "");
+        if (/^(0\d{9}|\+94\d{9})$/.test(cleanedMobile)) {
+          clearLiveFieldError(this, document.getElementById("mobile-error"));
+        }
+      });
+
+      document.getElementById("district").addEventListener("change", function () {
+        if (this.value) {
+          clearLiveFieldError(this, document.getElementById("district-error"));
+        }
+      });
+
+      document.getElementById("town").addEventListener("input", function () {
+        if (this.value.trim()) {
+          clearLiveFieldError(this, document.getElementById("town-error"));
+        }
+      });
+
+      document.getElementById("water-depth").addEventListener("change", function () {
+        if (this.value) {
+          clearLiveFieldError(this, document.getElementById("water-depth-error"));
+        }
+      });
+
+      descriptionTextarea.addEventListener("input", function () {
+        const trimmedDescriptionLength = this.value.trim().length;
+        if (trimmedDescriptionLength >= 10 && trimmedDescriptionLength <= MAX_CHARS) {
+          clearLiveFieldError(this, document.getElementById("description-error"));
+        }
+      });
     </script>
   </body>
 </html>
