@@ -1,0 +1,285 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Community Water Report - SL-FloodWarning</title>
+    <meta
+      name="description"
+      content="Submit a community water level field report to help validate AI flood predictions for Sri Lanka districts."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌊</text></svg>"
+    />
+    <link rel="stylesheet" href="landing.css" />
+    <style>
+      .report-section {
+        padding: 6rem 5% 4rem;
+        min-height: 80vh;
+        position: relative;
+        z-index: 10;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+      }
+      .report-card { max-width: 740px; width: 100%; }
+      .report-header { margin-bottom: 2.5rem; }
+      .report-header h1 { font-size: 2.4rem; margin-bottom: 0.6rem; }
+      .report-header p { color: #8a8f9e; font-size: 0.95rem; line-height: 1.6; }
+      .form-divider { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 2rem 0 1.8rem; }
+      .field-group { display: grid; gap: 1.4rem; }
+      .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; }
+      @media (max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
+      .form-field { display: flex; flex-direction: column; gap: 0.45rem; }
+      .form-label {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #cbd5e1;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+      }
+      .required-star { color: #ff3366; margin-left: 3px; }
+      .form-input,
+      .form-select,
+      .form-textarea {
+        background: rgba(10,15,26,0.8);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 10px;
+        color: #ffffff;
+        font-family: "Inter", sans-serif;
+        font-size: 0.95rem;
+        padding: 0.7rem 1rem;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        width: 100%;
+        outline: none;
+        box-sizing: border-box;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      .form-input::placeholder,
+      .form-textarea::placeholder { color: #4a5568; }
+      .select-wrapper { position: relative; }
+      .select-wrapper::after {
+        content: "\25BE";
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #00c9ff;
+        pointer-events: none;
+        font-size: 0.85rem;
+      }
+      .form-select option { background: #0f1623; color: #ffffff; }
+      .form-input:focus,
+      .form-select:focus,
+      .form-textarea:focus {
+        border-color: rgba(0,201,255,0.5);
+        box-shadow: 0 0 0 3px rgba(0,201,255,0.12);
+      }
+      .form-input:hover:not(:focus),
+      .form-select:hover:not(:focus),
+      .form-textarea:hover:not(:focus) { border-color: rgba(255,255,255,0.22); }
+      .form-textarea { resize: vertical; min-height: 110px; line-height: 1.55; }
+      .char-counter {
+        text-align: right;
+        font-size: 0.78rem;
+        color: #4a5568;
+        margin-top: 0.25rem;
+        font-family: "Inter", monospace;
+        transition: color 0.2s;
+      }
+      .char-counter.near-limit { color: #ffcc00; }
+      .char-counter.at-limit { color: #ff3366; }
+      .depth-hint { font-size: 0.76rem; color: #4a5568; margin-top: 0.2rem; line-height: 1.4; }
+      .submit-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, rgba(0,201,255,0.2), rgba(146,254,157,0.1));
+        color: #ffffff;
+        border: 1px solid rgba(0,201,255,0.35);
+        border-radius: 10px;
+        padding: 0.85rem 2.2rem;
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        letter-spacing: 0.04em;
+        transition: all 0.3s ease;
+        margin-top: 0.5rem;
+        width: 100%;
+        justify-content: center;
+      }
+      .submit-btn:hover {
+        background: linear-gradient(135deg, rgba(0,201,255,0.35), rgba(146,254,157,0.2));
+        border-color: #00c9ff;
+        box-shadow: 0 0 20px rgba(0,201,255,0.25);
+        transform: translateY(-2px);
+      }
+      .submit-btn:active { transform: translateY(0); }
+      .info-banner {
+        background: rgba(0,201,255,0.07);
+        border: 1px solid rgba(0,201,255,0.2);
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        font-size: 0.82rem;
+        color: #8a8f9e;
+        line-height: 1.5;
+        margin-bottom: 1.8rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+      }
+      .info-banner-icon { color: #00c9ff; font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+      .navbar nav a.active {
+        color: #00c9ff;
+        border-bottom: 2px solid rgba(0,201,255,0.5);
+        padding-bottom: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="particles-container" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;"></div>
+    <header class="navbar">
+      <a href="landing.html" class="logo" style="text-decoration:none">SL-FloodWarning</a>
+      <nav>
+        <a href="#" onclick="window.location.href='http://'+window.location.hostname+':8501';return false;">Dashboard</a>
+        <a href="data_sources.html">Data Sources</a>
+        <a href="api.html">API</a>
+        <a href="about.html">About</a>
+        <a href="support.html">Support</a>
+        <a href="community_report.html" class="active">Report</a>
+      </nav>
+    </header>
+    <section class="report-section">
+      <div class="glass-card report-card">
+        <div class="report-header">
+          <h1 class="gradient-text">Community Water Report</h1>
+          <p>Spotted flooding in your area? Submit a structured field report to help our AI models validate district-level predictions with real, on-the-ground data.</p>
+        </div>
+        <div class="info-banner">
+          <span class="info-banner-icon">i</span>
+          <span>Fields marked with <strong style="color:#ff3366">*</strong> are required. Your report is used solely for AI cross-validation and early warning improvement.</span>
+        </div>
+        <form id="community-report-form" novalidate>
+          <div class="field-row">
+            <div class="form-field">
+              <label class="form-label" for="reporter-name">Reporter Name<span class="required-star">*</span></label>
+              <input id="reporter-name" name="reporter_name" type="text" class="form-input" placeholder="e.g. Chamara Perera" required autocomplete="name" />
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="mobile-number">Mobile Number<span class="required-star">*</span></label>
+              <input id="mobile-number" name="mobile_number" type="tel" class="form-input" placeholder="e.g. 0771234567" required autocomplete="tel" />
+            </div>
+          </div>
+          <hr class="form-divider" />
+          <div class="field-row">
+            <div class="form-field">
+              <label class="form-label" for="district">District</label>
+              <div class="select-wrapper">
+                <select id="district" name="district" class="form-select">
+                  <option value="" disabled selected>Select District</option>
+                  <option value="Colombo">Colombo</option>
+                  <option value="Gampaha">Gampaha</option>
+                  <option value="Kalutara">Kalutara</option>
+                  <option value="Kandy">Kandy</option>
+                  <option value="Matale">Matale</option>
+                  <option value="Nuwara Eliya">Nuwara Eliya</option>
+                  <option value="Galle">Galle</option>
+                  <option value="Matara">Matara</option>
+                  <option value="Hambantota">Hambantota</option>
+                  <option value="Jaffna">Jaffna</option>
+                  <option value="Kilinochchi">Kilinochchi</option>
+                  <option value="Mannar">Mannar</option>
+                  <option value="Mullaitivu">Mullaitivu</option>
+                  <option value="Vavuniya">Vavuniya</option>
+                  <option value="Batticaloa">Batticaloa</option>
+                  <option value="Ampara">Ampara</option>
+                  <option value="Trincomalee">Trincomalee</option>
+                  <option value="Kurunegala">Kurunegala</option>
+                  <option value="Puttalam">Puttalam</option>
+                  <option value="Anuradhapura">Anuradhapura</option>
+                  <option value="Polonnaruwa">Polonnaruwa</option>
+                  <option value="Badulla">Badulla</option>
+                  <option value="Monaragala">Monaragala</option>
+                  <option value="Ratnapura">Ratnapura</option>
+                  <option value="Kegalle">Kegalle</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="town">Town<span class="required-star">*</span></label>
+              <input id="town" name="town" type="text" class="form-input" placeholder="e.g. Nugegoda" required autocomplete="address-level2" />
+            </div>
+          </div>
+          <hr class="form-divider" />
+          <div class="field-group">
+            <div class="form-field">
+              <label class="form-label" for="water-depth">Observed Water Depth</label>
+              <div class="select-wrapper">
+                <select id="water-depth" name="water_depth" class="form-select">
+                  <option value="" disabled selected>Select Water Depth</option>
+                  <option value="ankle">Level 1 - Ankle-deep (less than 0.5 m)</option>
+                  <option value="knee">Level 2 - Knee-deep (0.5 to 1.0 m)</option>
+                  <option value="waist">Level 3 - Waist-deep (1.0 to 1.5 m)</option>
+                  <option value="chest">Level 4 - Chest-deep / Impassable (above 1.5 m)</option>
+                </select>
+              </div>
+              <p class="depth-hint">Estimate the highest water level observed in the affected area relative to an adult standing at ground level.</p>
+            </div>
+          </div>
+          <hr class="form-divider" />
+          <div class="field-group">
+            <div class="form-field">
+              <label class="form-label" for="description">Description<span class="required-star">*</span></label>
+              <textarea id="description" name="description" class="form-textarea" placeholder="Describe what you observed — road condition, affected buildings, people displaced, any other hazards..." required></textarea>
+              <div class="char-counter" id="char-counter" aria-live="polite">Characters: <span id="char-count">0</span>/300</div>
+            </div>
+          </div>
+          <button type="submit" id="submit-btn" class="submit-btn">Submit Field Report</button>
+        </form>
+      </div>
+    </section>
+    <footer class="footer">
+      <div class="footer-left">
+        <h3>Contributors &amp; Support</h3>
+        <a href="#">Documentation</a> | <a href="support.html">Issue Tracker</a>
+      </div>
+      <div class="footer-center"><p>SRI LANKA FLOOD WARNING</p></div>
+    </footer>
+    <script>
+      const container = document.getElementById("particles-container");
+      for (let i = 0; i < 50; i++) {
+        const particle = document.createElement("div");
+        particle.className = "particle";
+        const size = Math.random() * 4 + 2;
+        particle.style.width = size + "px";
+        particle.style.height = size + "px";
+        particle.style.left = Math.random() * 100 + "%";
+        particle.style.animationDuration = Math.random() * 20 + 10 + "s";
+        particle.style.animationDelay = Math.random() * 10 + "s";
+        container.appendChild(particle);
+      }
+      const descriptionTextarea = document.getElementById("description");
+      const charCountEl = document.getElementById("char-count");
+      const charCounterEl = document.getElementById("char-counter");
+      const MAX_CHARS = 300;
+      descriptionTextarea.addEventListener("input", function () {
+        const count = this.value.length;
+        charCountEl.textContent = count;
+        charCounterEl.classList.remove("near-limit", "at-limit");
+        if (count >= MAX_CHARS) {
+          charCounterEl.classList.add("at-limit");
+        } else if (count >= MAX_CHARS * 0.85) {
+          charCounterEl.classList.add("near-limit");
+        }
+      });
+      document.getElementById("community-report-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        alert("Report received. Backend submission will be implemented in FR-2.2.");
+      });
+    </script>
+  </body>
+</html>
