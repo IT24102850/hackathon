@@ -1,7 +1,9 @@
 import { RiskBadge } from "@/components/risk-badge";
+import { DISTRICT_IMAGES } from "@/lib/district-images";
 import { formatMm, formatUpdatedAt } from "@/lib/format";
 import { RISK_BANDS } from "@/lib/risk";
 import type { DistrictRisk } from "@/lib/types";
+import Image from "next/image";
 
 /**
  * The single most at-risk district right now, with its rainfall totals and
@@ -16,6 +18,7 @@ export function HeroDistrict({
   generatedAt: string;
 }) {
   const meta = RISK_BANDS[district.band];
+  const image = DISTRICT_IMAGES[district.id];
 
   return (
     <section
@@ -56,7 +59,24 @@ export function HeroDistrict({
           </p>
         </div>
 
-        <div className="flex flex-col justify-center gap-4 rounded-xl bg-slate-50 p-5 dark:bg-slate-800/60">
+        <div className="flex flex-col justify-center gap-4">
+          <figure className="overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+            <Image
+              src={image.url}
+              width={image.width}
+              height={image.height}
+              alt={image.alt}
+              className="h-48 w-full object-cover sm:h-56"
+              sizes="(max-width: 1024px) 100vw, 40vw"
+              unoptimized
+              priority
+            />
+            <figcaption className="bg-slate-50 px-3 py-1.5 text-[10px] text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+              Photo: {image.credit} ({image.license}) · <a href={image.source} target="_blank" rel="noreferrer" className="underline">Source</a>
+            </figcaption>
+          </figure>
+
+          <div className="flex flex-col gap-4 rounded-xl bg-slate-50 p-5 dark:bg-slate-800/60">
           <div>
             <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
               Risk score
@@ -91,6 +111,7 @@ export function HeroDistrict({
               </dd>
             </div>
           </dl>
+          </div>
         </div>
       </div>
     </section>

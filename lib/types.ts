@@ -5,6 +5,17 @@
 /** The four risk bands, ordered least to most severe in BAND_ORDER. */
 export type RiskBandId = "low" | "moderate" | "high" | "severe";
 
+/** Online photograph and required attribution for a district. */
+export interface DistrictImage {
+  url: string;
+  width: number;
+  height: number;
+  alt: string;
+  credit: string;
+  license: string;
+  source: string;
+}
+
 /** A Sri Lankan administrative district we monitor. */
 export interface District {
   /** Stable slug used as a React key and in URLs. */

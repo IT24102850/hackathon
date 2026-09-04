@@ -1,16 +1,34 @@
 import { RiskBadge } from "@/components/risk-badge";
 import { formatMm } from "@/lib/format";
+import { DISTRICT_IMAGES } from "@/lib/district-images";
 import { RISK_BANDS } from "@/lib/risk";
 import type { DistrictRisk } from "@/lib/types";
+import Image from "next/image";
 
 /** One district in the board grid: score, band, rainfall and what to do. */
 export function DistrictCard({ district }: { district: DistrictRisk }) {
   const meta = RISK_BANDS[district.band];
+  const image = DISTRICT_IMAGES[district.id];
 
   return (
     <article
       className={`flex flex-col gap-4 rounded-xl border border-l-4 border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900 ${meta.edge}`}
     >
+      <figure className="overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
+        <Image
+          src={image.url}
+          width={image.width}
+          height={image.height}
+          alt={image.alt}
+          className="h-40 w-full object-cover"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          unoptimized
+        />
+        <figcaption className="px-2 py-1 text-[10px] text-slate-500 dark:text-slate-400">
+          Photo: {image.credit} ({image.license})
+        </figcaption>
+      </figure>
+
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="truncate text-base font-semibold text-slate-900 dark:text-slate-50">

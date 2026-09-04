@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { BoardControls } from "@/components/board-controls";
+import { DistrictMap } from "@/components/district-map";
 import {
   BoardEmpty,
   BoardError,
@@ -132,6 +133,8 @@ export function RiskBoard() {
         shown={visible.length}
         total={DISTRICT_COUNT}
       />
+
+      <DistrictMap districts={board.districts} />
 
       <div className={isPending ? "opacity-50 transition-opacity" : undefined}>
         {visible.length > 0 ? (
