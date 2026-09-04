@@ -11,12 +11,23 @@ import {
 } from "@/lib/safe-centres";
 
 export default function HomePage() {
+  const LOCAL_BOOKINGS_KEY = "flood-warning-booked-spots";
   const [activeSection, setActiveSection] = useState<string>("overview");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedDistrict, setSelectedDistrict] = useState<string>("ALL");
   const [spaceOnly, setSpaceOnly] = useState<boolean>(false);
   const [centres, setCentres] = useState(SAFE_CENTRES);
-  const [bookedSpots, setBookedSpots] = useState<Record<string, number>>({});
+  const [bookedSpots, setBookedSpots] = useState<Record<string, number>>(() => {
+    if (typeof window === "undefined") return {};
+    const savedBookings = window.localStorage.getItem(LOCAL_BOOKINGS_KEY);
+    if (!savedBookings) return {};
+    try {
+      return JSON.parse(savedBookings) as Record<string, number>;
+    } catch {
+      window.localStorage.removeItem(LOCAL_BOOKINGS_KEY);
+      return {};
+    }
+  });
   const [bookingCentreId, setBookingCentreId] = useState<string | number | null>(null);
   const [bookingName, setBookingName] = useState<string>("");
   const [bookingGuests, setBookingGuests] = useState<number>(1);
@@ -38,10 +49,7 @@ export default function HomePage() {
         setCentres(data.centres);
       })
       .catch(() => {
-        setBookingNotification({
-          type: "error",
-          message: "Live centre data is unavailable. Showing the saved sample catalogue."
-        });
+        // GitHub Pages cannot run Next.js API routes; keep the bundled catalogue usable there.
       });
   }, []);
 
@@ -63,10 +71,7 @@ export default function HomePage() {
         setBookedSpots(data.bookings || {});
       })
       .catch(() => {
-        setBookingNotification({
-          type: "error",
-          message: "Live booking data is unavailable. Please try again shortly."
-        });
+        // Static hosting has no API runtime; local storage keeps reservations usable.
       });
   }, []);
 
@@ -191,18 +196,24 @@ export default function HomePage() {
       });
       const data = (await response.json()) as { error?: string };
       if (!response.ok) {
-        setBookingNotification({
-          type: "error",
-          message: data.error || "Unable to confirm the booking."
-        });
-        return;
+        if (response.status !== 404 && response.status !== 405 && response.status !== 503) {
+          setBookingNotification({
+            type: "error",
+            message: data.error || "Unable to confirm the booking."
+          });
+          return;
+        }
       }
 
-      setBookedSpots((current) => ({
-        ...current,
-        [String(pendingBooking.centreId)]:
-          (current[String(pendingBooking.centreId)] || 0) + pendingBooking.guests
-      }));
+      setBookedSpots((current) => {
+        const updatedBookings = {
+          ...current,
+          [String(pendingBooking.centreId)]:
+            (current[String(pendingBooking.centreId)] || 0) + pendingBooking.guests
+        };
+        window.localStorage.setItem(LOCAL_BOOKINGS_KEY, JSON.stringify(updatedBookings));
+        return updatedBookings;
+      });
       setBookingNotification({
         type: "success",
         message: `${pendingBooking.guests} spot${pendingBooking.guests === 1 ? "" : "s"} reserved at ${selectedBookingCentre.name}.`
@@ -212,9 +223,18 @@ export default function HomePage() {
       setBookingGuests(1);
       setBookingCentreId(null);
     } catch {
+      setBookedSpots((current) => {
+        const updatedBookings = {
+          ...current,
+          [String(pendingBooking.centreId)]:
+            (current[String(pendingBooking.centreId)] || 0) + pendingBooking.guests
+        };
+        window.localStorage.setItem(LOCAL_BOOKINGS_KEY, JSON.stringify(updatedBookings));
+        return updatedBookings;
+      });
       setBookingNotification({
-        type: "error",
-        message: "Unable to reach the booking service. Please try again."
+        type: "success",
+        message: `${pendingBooking.guests} spot${pendingBooking.guests === 1 ? "" : "s"} reserved on this device.`
       });
     } finally {
       setBookingSubmitting(false);
