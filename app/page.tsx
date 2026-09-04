@@ -28,6 +28,16 @@ export default function HomePage() {
     guests: number;
   } | null>(null);
 
+  useEffect(() => {
+    if (!bookingNotification) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setBookingNotification(null);
+    }, 5000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [bookingNotification]);
+
   // Dynamic unique districts extracted from data (FR-3.5)
   const districts = useMemo(() => getUniqueDistricts(SAFE_CENTRES), []);
 
