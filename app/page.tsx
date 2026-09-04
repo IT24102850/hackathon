@@ -1,4 +1,5 @@
 import { RiskBoard } from "@/components/risk-board";
+import { CommunityAndCentres } from "@/components/community-and-centres";
 import {
   BANDS_BY_SEVERITY,
   RAIN_24H_CAP_MM,
@@ -20,7 +21,11 @@ export default function Home() {
         </p>
       </section>
 
-      <RiskBoard />
+      <section id="risk-board" className="scroll-mt-24">
+        <RiskBoard />
+      </section>
+
+      <CommunityAndCentres />
 
       <ProblemSection />
       <MethodSection />
@@ -183,6 +188,12 @@ function MethodSection() {
         at 18 of a possible 20 on that term alone. Give it 150 mm of rain
         tomorrow and 300 mm across three days and both rainfall terms cap out,
         putting it at 98 and firmly in the Severe band.
+      </p>
+      <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+        Prototype limitations: forecasts come from Open-Meteo at district
+        capitals, vulnerability is a fixed heuristic, safe-centre occupancy is
+        sample data, and community reports are stored only in this browser.
+        This tool does not replace official warnings or emergency services.
       </p>
     </section>
   );
