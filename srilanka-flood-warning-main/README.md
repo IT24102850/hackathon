@@ -78,8 +78,10 @@ cd srilanka-flood-warning
 ### 2. Install dependencies
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirments.txt
 ```
+
+This project does not use Node.js or npm. There is no `package.json`; install the Python dependencies above instead.
 
 Or run directly in Google Colab — click the badge at the top of this README.
 
@@ -165,7 +167,7 @@ srilanka-flood-warning/
 │   └── xgb_flood_model.pkl     # Trained model artifact
 ├── assets/
 │   └── demo_map.png            # Screenshot for README
-├── requirements.txt
+├── requirments.txt
 ├── LICENSE
 └── README.md
 ```
