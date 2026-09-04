@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sri Lanka Flood & Landslide Warning System (SLFWS)</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌊</text></svg>"
+    />
+    <!-- External Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="app/landing.css?v=3" />
+  </head>
+  <body>
+    <!-- Animated Particle Background Canvas -->
+    <div id="particles-container"></div>
+
+    <!-- ====================================================================
+         FR-3.11: PERSISTENT NAVIGATION BAR & ARIA-CURRENT
+         4 reachable sections with active state exposed via aria-current="page"
+         ==================================================================== -->
+    <header class="navbar" role="banner">
+      <div class="nav-brand">
+        <a href="#overview" class="logo" aria-label="SL-FloodWarning Home">
+          <span class="logo-wave">🌊</span>
+          <span>SL-FloodWarning</span>
+        </a>
+      </div>
+      <nav aria-label="Main Navigation">
+        <a
+          href="#overview"
+          data-section="overview"
+          class="nav-link-item nav-active"
+          aria-current="page"
+        >
+          <i class="fa-solid fa-house"></i> Overview
+        </a>
+        <a
+          href="#safe-centres"
+          data-section="safe-centres"
+          class="nav-link-item"
+        >
+          <i class="fa-solid fa-shield-heart"></i> Safe Centres
+        </a>
+        <a
+          href="#problem-methodology"
+          data-section="problem-methodology"
+          class="nav-link-item"
+        >
+          <i class="fa-solid fa-chart-line"></i> Problem & AI
+        </a>
+        <a
+          href="#preparedness"
+          data-section="preparedness"
+          class="nav-link-item"
+        >
+          <i class="fa-solid fa-kit-medical"></i> Preparedness
+        </a>
+        <a
+          href="#"
+          onclick="window.location.href = 'http://' + window.location.hostname + ':8501'; return false;"
+          class="nav-cta-btn"
+          title="Open Streamlit 3D AI Prediction Dashboard"
+        >
+          <i class="fa-solid fa-gauge-high"></i> Live 3D AI
+        </a>
+      </nav>
+    </header>
+
+    <main>
+      <!-- ==================================================================
+           SECTION 1: OVERVIEW (#overview)
+           ================================================================== -->
+      <section id="overview" class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-container">
+          <div class="hero-content">
+            <div class="hero-pill-badge">
+              <i class="fa-solid fa-satellite-dish"></i> NASA GPM IMERG +
+              XGBoost AI
+            </div>
+            <h1 class="gradient-text">
+              Sri Lanka Flood & Landslide Early Warning
+            </h1>
+            <p class="desc">
+              A real-time geospatial intelligence system predicting flood and
+              landslide risk 24–48 hours in advance across all 25 districts,
+              coupled with real-time evacuation centre availability.
+            </p>
+            <p class="bold-text">
+              Predict hazards. Locate safe shelters. Protect communities.
+            </p>
+            <div class="hero-buttons">
+              <a href="#safe-centres" class="btn-primary">
+                <i class="fa-solid fa-person-shelter"></i> FIND SAFE CENTRES
+              </a>
+              <a href="#problem-methodology" class="btn-outline">
+                <i class="fa-solid fa-circle-info"></i> HOW IT WORKS
+              </a>
+              <a
+                href="#"
+                onclick="window.location.href = 'http://' + window.location.hostname + ':8501'; return false;"
+                class="btn-outline"
+              >
+                <i class="fa-solid fa-cube"></i> 3D RISK MAP
+              </a>
+            </div>
+
+            <!-- Key Indicators Grid -->
+            <div class="hero-indicators-grid">
+              <div class="indicator-card">
+                <div class="indicator-val">25</div>
+                <div class="indicator-title">Districts Covered</div>
+              </div>
+              <div class="indicator-card">
+                <div class="indicator-val">24-48h</div>
+                <div class="indicator-title">Advance Warning</div>
+              </div>
+              <div class="indicator-card">
+                <div class="indicator-val">0.822</div>
+                <div class="indicator-title">Model AUC-ROC</div>
+              </div>
+              <div class="indicator-card">
+                <div class="indicator-val">100%</div>
+                <div class="indicator-title">Free & Open Access</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-image slideshow-container">
+            <div class="slide fade">
+              <img
+                src="images/slide1_response.jpg"
+                alt="Disaster Management and Emergency Response"
+                onerror="this.src='https://images.unsplash.com/photo-1547683905-f686c993aae5?w=800&q=80'"
+              />
+              <div class="slide-text">
+                <strong style="color: #00c9ff">🚨 Proactive Evacuation</strong
+                ><br />
+                <span style="font-size: 0.85rem; color: #cbd5e1">
+                  Predictive risk modeling for timely evacuations before flash
+                  flooding occurs.
+                </span>
+              </div>
+            </div>
+            <div class="slide fade">
+              <img
+                src="images/slide2_safety.jpg"
+                alt="Public Safety and Safe Shelter Management"
+                onerror="this.src='https://images.unsplash.com/photo-1584467735815-f778f274e296?w=800&q=80'"
+              />
+              <div class="slide-text">
+                <strong style="color: #92fe9d">🛡️ Safe Shelter Registry</strong
+                ><br />
+                <span style="font-size: 0.85rem; color: #cbd5e1">
+                  Live occupancy tracking and direct phone lines to disaster
+                  relief camps.
+                </span>
+              </div>
+            </div>
+            <div class="slide fade">
+              <img
+                src="images/slide3_community.jpg"
+                alt="Community Participation and Ground Truth"
+                onerror="this.src='https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80'"
+              />
+              <div class="slide-text">
+                <strong style="color: #ffcc00">🤝 Ground Truth Reporting</strong
+                ><br />
+                <span style="font-size: 0.85rem; color: #cbd5e1">
+                  Crowdsourced field observations to validate AI predictions.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           SECTION 2: SAFE CENTRES DIRECTORY (#safe-centres)
+           Implements FR-3.1 through FR-3.8
+           ================================================================== -->
+      <section id="safe-centres" class="section-wrapper">
+        <div class="section-header">
+          <span class="section-tag">Emergency Shelter Registry</span>
+          <h2 class="section-title">
+            Registered Safe Centres & Live Space Tracker
+          </h2>
+          <p class="section-subtitle">
+            Find designated safe shelters across vulnerable districts with live
+            occupancy, remaining capacity calculations, and instant telephone
+            access for emergency coordination.
+          </p>
+        </div>
+
+        <!-- Filter Controls Toolbar (FR-3.4, FR-3.5, FR-3.6) -->
+        <div class="filter-toolbar">
+          <div class="filter-controls-row">
+            <!-- FR-3.4 Search Input -->
+            <div class="search-box-wrapper">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input
+                type="search"
+                id="centre-search"
+                class="filter-input"
+                placeholder="Search centres by name, town, or type (e.g. School, Kaduwela)..."
+                aria-label="Search safe centres by name, town, or type"
+              />
+            </div>
+
+            <!-- FR-3.5 District Filter (Populated from data) -->
+            <div class="select-wrapper">
+              <select
+                id="district-filter"
+                class="filter-select"
+                aria-label="Filter centres by district"
+              >
+                <option value="ALL">Loading districts...</option>
+              </select>
+            </div>
+
+            <!-- FR-3.6 Filter to Centres with Space Only -->
+            <label class="checkbox-wrapper" for="space-only-filter">
+              <input type="checkbox" id="space-only-filter" />
+              <span class="checkbox-label"
+                ><i class="fa-solid fa-filter"></i> Only centres with space</span
+              >
+            </label>
+          </div>
+        </div>
+
+        <!-- FR-3.7 Availability Summary Bar -->
+        <div id="centres-summary" aria-live="polite"></div>
+
+        <!-- FR-3.1, FR-3.2, FR-3.3, FR-3.8 Centres List Grid -->
+        <div
+          id="centres-list"
+          class="centres-grid"
+          role="region"
+          aria-label="Safe Centres Directory"
+        >
+          <!-- Dynamically populated by script.js -->
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           SECTION 3: PROBLEM & METHODOLOGY (#problem-methodology)
+           Implements FR-3.9: States Sri Lankan problem, who is affected,
+           what fails, risk calculation formula, limitations, naming specific
+           districts and river basins.
+           ================================================================== -->
+      <section id="problem-methodology" class="section-wrapper">
+        <div class="section-header">
+          <span class="section-tag">Context & AI Methodology</span>
+          <h2 class="section-title">Understanding the Challenge</h2>
+          <p class="section-subtitle">
+            Detailed technical breakdown of the disaster landscape in Sri Lanka,
+            vulnerabilities in current mechanisms, and the mathematical
+            architecture of our predictive system.
+          </p>
+        </div>
+
+        <div class="problem-grid">
+          <!-- 1. The Sri Lankan Problem -->
+          <article class="problem-card card-featured">
+            <div class="card-header-icon">
+              <div class="icon-badge icon-red">
+                <i class="fa-solid fa-cloud-showers-heavy"></i>
+              </div>
+              <div>
+                <h3>1. The Sri Lankan Problem</h3>
+                <span style="font-size: 0.85rem; color: #94a3b8"
+                  >Tropical island geography, extreme precipitation events, and
+                  severe monsoon vulnerability</span
+                >
+              </div>
+            </div>
+            <p>
+              Sri Lanka is acutely susceptible to catastrophic hydro-meteorological disasters
+              governed by a bimodal monsoon system—the
+              <strong style="color: #00c9ff">Southwest Monsoon (May to September)</strong> and the
+              <strong style="color: #92fe9d">Northeast Monsoon (December to February)</strong>—as well
+              as intensifying inter-monsoonal tropical depressions. In November 2025,
+              <strong>Cyclone Ditwah</strong> struck the island, generating historic rainfall that triggered
+              unprecedented flash flooding and catastrophic hill-country debris flows, displacing over 2 million
+              individuals and incurring upwards of $4.1 billion in nationwide infrastructure devastation.
+            </p>
+            <div class="highlight-box">
+              <p>
+                <strong>Key Critical River Basins Most Prone to Overflow:</strong>
+              </p>
+              <div class="pills-container">
+                <span class="pill-item pill-basin"><i class="fa-solid fa-water"></i> Kelani Ganga Basin</span>
+                <span class="pill-item pill-basin"><i class="fa-solid fa-water"></i> Kalu Ganga Basin</span>
+                <span class="pill-item pill-basin"><i class="fa-solid fa-water"></i> Gin Ganga Basin</span>
+                <span class="pill-item pill-basin"><i class="fa-solid fa-water"></i> Nilwala Ganga Basin</span>
+                <span class="pill-item pill-basin"><i class="fa-solid fa-water"></i> Mahaweli Ganga Basin</span>
+                <span class="pill-item pill-basin"><i class="fa-solid fa-water"></i> Deduru Oya Basin</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- 2. Who is Affected -->
+          <article class="problem-card">
+            <div class="card-header-icon">
+              <div class="icon-badge icon-cyan">
+                <i class="fa-solid fa-users"></i>
+              </div>
+              <div>
+                <h3>2. Who is Affected</h3>
+                <span style="font-size: 0.85rem; color: #94a3b8"
+                  >Vulnerable populations, agriculture, and high-risk districts</span
+                >
+              </div>
+            </div>
+            <p>
+              Floods and landslides disproportionately affect over
+              <strong style="color: #ffffff">2 million residents</strong> across both low-lying river floodplains
+              and unstable escarpments. Agrarian rural communities face existential crises: over
+              <strong style="color: #ffffff">58,000 hectares of paddy farming</strong> were inundated in recent cycles.
+              Urban informal settlements situated on floodplains experience prolonged waterlogging, destruction of sanitation,
+              and contamination of potable water, while children, the elderly, and hospital patients face acute displacement.
+            </p>
+            <p style="margin-top: 0.75rem">
+              <strong>High-Risk Districts Directly Monitored:</strong>
+            </p>
+            <div class="pills-container">
+              <span class="pill-item pill-district"><i class="fa-solid fa-location-dot"></i> Kalutara</span>
+              <span class="pill-item pill-district"><i class="fa-solid fa-location-dot"></i> Ratnapura</span>
+              <span class="pill-item pill-district"><i class="fa-solid fa-location-dot"></i> Galle</span>
+              <span class="pill-item pill-district"><i class="fa-solid fa-location-dot"></i> Matara</span>
+              <span class="pill-item pill-district"><i class="fa-solid fa-location-dot"></i> Colombo</span>
+              <span class="pill-item pill-district"><i class="fa-solid fa-location-dot"></i> Gampaha</span>
+              <span class="pill-item pill-district"><i class="fa-solid fa-location-dot"></i> Kegalle</span>
+              <span class="pill-item pill-district"><i class="fa-solid fa-location-dot"></i> Badulla</span>
+              <span class="pill-item pill-district"><i class="fa-solid fa-location-dot"></i> Nuwara Eliya</span>
+            </div>
+          </article>
+
+          <!-- 3. What Currently Fails -->
+          <article class="problem-card">
+            <div class="card-header-icon">
+              <div class="icon-badge icon-amber">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <h3>3. What Currently Fails</h3>
+                <span style="font-size: 0.85rem; color: #94a3b8"
+                  >Shortcomings of conventional threshold-based warning</span
+                >
+              </div>
+            </div>
+            <p>
+              Conventional early warning infrastructure in Sri Lanka relies predominantly on
+              <strong style="color: #ffffff">static meteorological rainfall thresholds</strong> (e.g., 100mm in 24 hours).
+              This rule-based paradigm exhibits fatal limitations:
+            </p>
+            <ul style="padding-left: 1.25rem; color: #94a3b8; font-size: 0.92rem; line-height: 1.7;">
+              <li><strong>Ignores Antecedent Soil Moisture:</strong> Soil saturated from rain weeks prior will liquefy or cause overland runoff at far lower rainfall levels than dry ground.</li>
+              <li><strong>Lagging Administrative Notification:</strong> Warnings travel through bureaucratic hierarchies, frequently arriving hours after floodwaters peak.</li>
+              <li><strong>Opaque Shelter Availability:</strong> Evacuees are directed to shelters without knowledge of capacity, causing bottlenecks at filled sites while nearby centres remain empty.</li>
+            </ul>
+          </article>
+
+          <!-- 4. How the Risk Score is Calculated -->
+          <article class="problem-card">
+            <div class="card-header-icon">
+              <div class="icon-badge icon-purple">
+                <i class="fa-solid fa-brain"></i>
+              </div>
+              <div>
+                <h3>4. How Risk Score is Calculated</h3>
+                <span style="font-size: 0.85rem; color: #94a3b8"
+                  >Multi-signal XGBoost predictive machine learning pipeline</span
+                >
+              </div>
+            </div>
+            <p>
+              The system predicts disaster probability using an optimized <strong>XGBoost classifier</strong>
+              trained on 50 years (1974–2024) of verified DesInventar disaster records, evaluated via 5-fold TimeSeriesCV:
+            </p>
+            <div class="formula-box">
+              RiskScore = σ( Σ w_i · f_i ) ∈ [0.0, 1.0]
+              <br />
+              Features: [Rainfall_Now, Rain_Prev1, Rain_3Mo, Rain_6Mo, SRTM_Elevation, Terrain_Slope, Rain×Slope, Month_Sin, Month_Cos]
+            </div>
+            <p style="font-size: 0.88rem;">
+              • <strong>Critical Risk (≥ 60%):</strong> Immediate proactive evacuation alert.<br />
+              • <strong>Moderate Risk (35% – 59%):</strong> Heightened monitoring & prep.<br />
+              • <strong>Low Risk (< 35%):</strong> Standard seasonal operations.
+            </p>
+          </article>
+
+          <!-- 5. Prototype's Limitations -->
+          <article class="problem-card">
+            <div class="card-header-icon">
+              <div class="icon-badge icon-red">
+                <i class="fa-solid fa-sliders"></i>
+              </div>
+              <div>
+                <h3>5. Prototype Limitations</h3>
+                <span style="font-size: 0.85rem; color: #94a3b8"
+                  >Scientific bounds, operational constraints, and roadmap</span
+                >
+              </div>
+            </div>
+            <ul style="padding-left: 1.25rem; color: #94a3b8; font-size: 0.92rem; line-height: 1.7;">
+              <li><strong>Satellite Observation Latency:</strong> NASA GPM IMERG satellite products carry an inherent 3-to-4 hour processing lag for near-real-time early runs.</li>
+              <li><strong>Spatial Aggregation:</strong> Predictions operate at the <em>District level</em> rather than micro-scale <em>Grama Niladhari (GN)</em> divisions, necessitating local judgment for specific valleys.</li>
+              <li><strong>Absence of Live Hydro-telemetry:</strong> Current release does not ingest live telemetry sensors from Irrigation Department river stage gauges.</li>
+              <li><strong>Sample Shelter Occupancy:</strong> Safe centre occupancy counts reflect simulated/sample field data until live integration with DMC camp management software is finalized.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <!-- ==================================================================
+           SECTION 4: EMERGENCY PREPAREDNESS (#preparedness)
+           ================================================================== -->
+      <section id="preparedness" class="section-wrapper">
+        <div class="section-header">
+          <span class="section-tag">Community Safety Protocol</span>
+          <h2 class="section-title">Emergency Preparedness & Direct Lines</h2>
+          <p class="section-subtitle">
+            Essential procedures, 24/7 national emergency hotlines, and safety
+            protocols during active flood warnings.
+          </p>
+        </div>
+
+        <div class="preparedness-grid">
+          <div class="glass-card">
+            <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem;">
+              <i class="fa-solid fa-phone-volume" style="color: #00c9ff;"></i> 24/7 National Emergency Hotlines
+            </h3>
+            <div class="hotline-list">
+              <div class="hotline-card">
+                <div class="hotline-info">
+                  <h4>Disaster Management Centre (DMC)</h4>
+                  <p>National Emergency Operations Coordination</p>
+                </div>
+                <a href="tel:117" class="hotline-btn">
+                  <i class="fa-solid fa-phone"></i> Dial 117
+                </a>
+              </div>
+              <div class="hotline-card">
+                <div class="hotline-info">
+                  <h4>Suwa Seriya Pre-Hospital Ambulance</h4>
+                  <p>Toll-Free Emergency Medical Response</p>
+                </div>
+                <a href="tel:1990" class="hotline-btn">
+                  <i class="fa-solid fa-phone"></i> Dial 1990
+                </a>
+              </div>
+              <div class="hotline-card">
+                <div class="hotline-info">
+                  <h4>Sri Lanka Police Emergency Division</h4>
+                  <p>Immediate Search, Rescue & Security</p>
+                </div>
+                <a href="tel:119" class="hotline-btn">
+                  <i class="fa-solid fa-phone"></i> Dial 119
+                </a>
+              </div>
+              <div class="hotline-card">
+                <div class="hotline-info">
+                  <h4>Red Cross Society Sri Lanka</h4>
+                  <p>Community First Aid & Evacuation Support</p>
+                </div>
+                <a href="tel:+94112691095" class="hotline-btn">
+                  <i class="fa-solid fa-phone"></i> Call Direct
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem;">
+              <i class="fa-solid fa-shield-halved" style="color: #10b981;"></i> Evacuation Checklist
+            </h3>
+            <ul class="checklist-list">
+              <li>
+                <i class="fa-solid fa-circle-check"></i>
+                <span>Pack dry rations, non-perishable food, and potable water bottles.</span>
+              </li>
+              <li>
+                <i class="fa-solid fa-circle-check"></i>
+                <span>Keep National Identity Cards, deeds, and prescriptions in waterproof zip bags.</span>
+              </li>
+              <li>
+                <i class="fa-solid fa-circle-check"></i>
+                <span>Turn off domestic mains electricity switches and LP gas regulators.</span>
+              </li>
+              <li>
+                <i class="fa-solid fa-circle-check"></i>
+                <span>Relocate livestock and pets to elevated, open enclosures.</span>
+              </li>
+              <li>
+                <i class="fa-solid fa-circle-check"></i>
+                <span>Check the Safe Centres tab to confirm vacancy before departure.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ====================================================================
+         FOOTER
+         ==================================================================== -->
+    <footer class="footer" role="contentinfo">
+      <div class="footer-nav">
+        <a href="#overview">Overview</a>
+        <a href="#safe-centres">Safe Centres Directory</a>
+        <a href="#problem-methodology">Problem & Methodology</a>
+        <a href="#preparedness">Emergency Hotlines</a>
+        <a href="#" onclick="window.location.href = 'http://' + window.location.hostname + ':8501'; return false;">AI Streamlit App</a>
+      </div>
+      <div class="footer-copy">
+        <p>Sri Lanka Flood & Landslide Warning System (SLFWS) — Open Source Initiative.</p>
+        <p style="margin-top: 0.25rem; color: #475569;">
+          Data sources: NASA GPM IMERG | SRTM Elevation 30m | DesInventar Disaster Archives.
+        </p>
+      </div>
+    </footer>
+
+    <!-- Slideshow & Interactions Script -->
+    <script>
+      let slideIndex = 0;
+      function showSlides() {
+        const slides = document.getElementsByClassName("slide");
+        if (!slides || slides.length === 0) return;
+        for (let i = 0; i < slides.length; i++) {
+          slides[i].style.display = "none";
+        }
+        slideIndex++;
+        if (slideIndex > slides.length) {
+          slideIndex = 1;
+        }
+        slides[slideIndex - 1].style.display = "block";
+        setTimeout(showSlides, 4000);
+      }
+      document.addEventListener("DOMContentLoaded", showSlides);
+    </script>
+    <!-- Core Application Logic -->
+    <script src="app/script.js?v=3"></script>
+  </body>
+</html>
+
