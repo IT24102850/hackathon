@@ -18,13 +18,14 @@ export async function getDatabase() {
     throw new Error("MONGODB_URI is not configured");
   }
 
-  const mongoClientPromise =
-    global._mongoClientPromise || new MongoClient(uri, options).connect();
-
-  if (process.env.NODE_ENV !== "production") {
-    global._mongoClientPromise = mongoClientPromise;
+  if (!global._mongoClientPromise) {
+    const client = new MongoClient(uri, options);
+    global._mongoClientPromise = client.connect().catch((error) => {
+      global._mongoClientPromise = undefined;
+      throw error;
+    });
   }
 
-  const connectedClient = await mongoClientPromise;
+  const connectedClient = await global._mongoClientPromise;
   return connectedClient.db(process.env.MONGODB_DB || "flood_warning");
 }

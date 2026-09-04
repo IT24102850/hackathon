@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSafeCentres } from "@/lib/safe-centres-db";
 
+export const runtime = "nodejs";
+
 export async function GET() {
   try {
     const centres = await getSafeCentres();

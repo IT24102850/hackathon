@@ -4,6 +4,8 @@ import { getSafeCentres } from "@/lib/safe-centres-db";
 
 const BOOKINGS_COLLECTION = "centre_bookings";
 
+export const runtime = "nodejs";
+
 type BookingRequest = {
   centreId: string;
   contactName: string;

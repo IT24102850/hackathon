@@ -109,6 +109,28 @@ This fetches:
 streamlit run app/app.py
 ```
 
+### Next.js safe-centre backend
+
+The safe-centre registry and bookings API run through the Next.js server:
+
+```bash
+npm install
+npm run dev
+```
+
+Create `.env.local` (never commit it):
+
+```env
+MONGODB_URI=mongodb+srv://<username>:<url-encoded-password>@<cluster>.mongodb.net/?retryWrites=true&w=majority
+MONGODB_DB=flood_warning
+```
+
+Test the database connection at `http://localhost:3000/api/health/mongodb`.
+If it reports that MongoDB is unreachable, verify in MongoDB Atlas that the database
+user/password are correct and Network Access allows the deployed server's outbound IP.
+GitHub Pages cannot run these API routes; deploy the Next.js app to Vercel, Render,
+or another Node.js host and configure the two environment variables there.
+
 ---
 
 ## Data Sources
