@@ -40,7 +40,7 @@ export function CommunityAndCentres() {
     try { return JSON.parse(localStorage.getItem("floodwatch-water-reports") || "[]"); } catch { return []; }
   });
   const [reportSearch, setReportSearch] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [centreQuery, setCentreQuery] = useState("");
   const [centreDistrict, setCentreDistrict] = useState("All districts");
   const [spaceOnly, setSpaceOnly] = useState(false);
@@ -50,15 +50,17 @@ export function CommunityAndCentres() {
   const [bookingNotice, setBookingNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
-    void fetch("/api/reports", { cache: "no-store" }).then(async (response) => {
+    void fetch("/api/water-reports", { cache: "no-store" }).then(async (response) => {
       if (response.ok) {
         const remoteReports = await response.json() as Report[];
         if (remoteReports.length) setReports(remoteReports);
       }
-    }).catch(() => undefined);
+      setMessage({ type: "error", text: "Reports could not be loaded from the database. Showing saved reports from this device." });
+    }).catch(() => setMessage({ type: "error", text: "Reports could not be loaded from the database. Showing saved reports from this device." }));
     void fetch("/api/centres", { cache: "no-store" }).then(async (response) => {
       if (response.ok) setCentres(await response.json() as Centre[]);
-    }).catch(() => undefined);
+      else setBookingNotice({ type: "error", text: "Safe centre availability could not be loaded from the database. Showing the latest available list." });
+    }).catch(() => setBookingNotice({ type: "error", text: "Safe centre availability could not be loaded from the database. Showing the latest available list." }));
   }, []);
 
   const visibleReports = useMemo(() => {
@@ -77,10 +79,10 @@ export function CommunityAndCentres() {
   function updateField(field: keyof typeof emptyForm, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
     setErrors((current) => { const next = { ...current }; delete next[field]; return next; });
-    setMessage("");
+    setMessage(null);
   }
 
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
     const nextErrors = validate(form);
     setErrors(nextErrors);
@@ -89,9 +91,14 @@ export function CommunityAndCentres() {
     const nextReports = [report, ...reports];
     setReports(nextReports);
     localStorage.setItem("floodwatch-water-reports", JSON.stringify(nextReports));
-    void fetch("/api/reports", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(report) });
     setForm(emptyForm);
-    setMessage("Report submitted. Thank you for helping your community.");
+    try {
+      const response = await fetch("/api/water-reports", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(report) });
+      if (!response.ok) throw new Error("The report could not be saved to the database.");
+      setMessage({ type: "success", text: "Report submitted successfully and saved to the database." });
+    } catch {
+      setMessage({ type: "error", text: "Report saved on this device, but the database is unavailable. Please try again later." });
+    }
   }
 
   function submitBooking(event: FormEvent, centre: Centre) {
@@ -135,7 +142,7 @@ export function CommunityAndCentres() {
         <Field label="Town or area" id="report-town" error={errors.town}><input className={controlClass} id="report-town" placeholder="e.g. Kelaniya" value={form.town} onChange={(e) => updateField("town", e.target.value)} aria-invalid={!!errors.town} aria-describedby={errors.town ? "report-town-error" : undefined} /></Field>
         <Field label="Observed water depth" id="report-depth" error={errors.depth}><select className={controlClass} id="report-depth" value={form.depth} onChange={(e) => updateField("depth", e.target.value)} aria-invalid={!!errors.depth} aria-describedby={errors.depth ? "report-depth-error" : undefined}><option value="">Select depth</option>{DEPTHS.map((depth) => <option key={depth.value} value={depth.value}>{depth.label}</option>)}</select></Field>
         <div className="sm:col-span-2"><Field label={`Description (${form.description.length}/300)`} id="report-description" error={errors.description}><textarea className={`${controlClass} min-h-28 resize-y`} id="report-description" placeholder="Describe where the water is and how deep it is..." value={form.description} onChange={(e) => updateField("description", e.target.value)} aria-invalid={!!errors.description} aria-describedby={errors.description ? "report-description-error" : undefined} /></Field></div>
-        <div className="flex flex-wrap items-center gap-4 sm:col-span-2"><button type="submit" className="rounded-lg bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500/40">Submit report</button>{message && <p role="status" className="text-sm font-medium text-emerald-700">{message}</p>}</div>
+        <div className="flex flex-wrap items-center gap-4 sm:col-span-2"><button type="submit" className="rounded-lg bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500/40">Submit report</button>{message && <p role={message.type === "error" ? "alert" : "status"} className={`text-sm font-medium ${message.type === "error" ? "text-red-700 dark:text-red-400" : "text-emerald-700 dark:text-emerald-400"}`}>{message.text}</p>}</div>
       </form>
       <div className="mt-5"><label htmlFor="report-search" className="block text-sm font-medium text-slate-700 dark:text-slate-200">Search submitted reports</label><input id="report-search" type="search" value={reportSearch} onChange={(event) => setReportSearch(event.target.value)} placeholder="Search by town, district, or reporter name..." className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" /><p className="mt-2 text-xs text-slate-500" aria-live="polite">Showing {visibleReports.length} report{visibleReports.length === 1 ? "" : "s"}</p></div>
       <div className="mt-3 space-y-3">{visibleReports.length ? visibleReports.map((report) => <article key={report.createdAt} className="rounded-xl border border-slate-200 bg-white p-4 text-sm dark:border-slate-800 dark:bg-slate-900"><div className="flex flex-wrap justify-between gap-2 font-semibold text-slate-900 dark:text-slate-100"><span>{report.town}, {report.district} · {DEPTHS.find((depth) => depth.value === report.depth)?.label}</span><time dateTime={report.createdAt}>{new Intl.DateTimeFormat("en-LK", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Colombo" }).format(new Date(report.createdAt))}</time></div><p className="mt-1 text-slate-600 dark:text-slate-300">{report.description}</p><p className="mt-2 text-xs text-slate-500">Reported by {report.name}</p></article>) : reportSearch.trim() ? <p className="text-sm text-slate-500">No reports found matching your search.</p> : <p className="text-sm text-slate-500">No community reports yet.</p>}</div>
