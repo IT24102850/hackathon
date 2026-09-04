@@ -62,6 +62,52 @@ export function BoardError({
   );
 }
 
+/**
+ * Shown whenever the board is running on scaled rainfall instead of the live
+ * forecast. Deliberately loud: a warning board showing invented Severe alerts
+ * must never be mistaken for a real one.
+ */
+export function SimulationBanner({
+  label,
+  description,
+  onUseLive,
+}: {
+  label: string;
+  description: string;
+  onUseLive: () => void;
+}) {
+  return (
+    <div
+      role="status"
+      className="flex flex-col gap-3 rounded-xl border-2 border-amber-400 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-amber-500/60 dark:bg-amber-950/30"
+    >
+      <div className="flex items-start gap-3">
+        <span
+          className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-400 text-sm font-bold text-amber-950"
+          aria-hidden
+        >
+          !
+        </span>
+        <div>
+          <p className="text-sm font-bold text-amber-900 dark:text-amber-200">
+            Simulated data — this is not a real warning
+          </p>
+          <p className="mt-0.5 text-sm text-amber-800 dark:text-amber-300/90">
+            <span className="font-semibold">{label}.</span> {description}
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onUseLive}
+        className="shrink-0 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+      >
+        Back to live forecast
+      </button>
+    </div>
+  );
+}
+
 /** Shown when the search and filter together match no districts. */
 export function BoardEmpty({
   query,

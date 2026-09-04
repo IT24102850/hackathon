@@ -3,11 +3,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { BoardControls } from "@/components/board-controls";
-import { BoardEmpty, BoardError, BoardSkeleton } from "@/components/board-states";
+import {
+  BoardEmpty,
+  BoardError,
+  BoardSkeleton,
+  SimulationBanner,
+} from "@/components/board-states";
 import { DistrictCard } from "@/components/district-card";
 import { HeroDistrict } from "@/components/hero-district";
 import { DISTRICT_COUNT } from "@/lib/districts";
 import { bandRank } from "@/lib/risk";
+import { LIVE_SCENARIO_ID } from "@/lib/scenarios";
 import type { RiskBandId, RiskBoardResponse } from "@/lib/types";
 
 /**
@@ -23,12 +29,16 @@ export function RiskBoard() {
 
   const [query, setQuery] = useState("");
   const [minBand, setMinBand] = useState<RiskBandId>("low");
+  const [scenarioId, setScenarioId] = useState(LIVE_SCENARIO_ID);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (scenario: string) => {
     setIsPending(true);
 
     try {
-      const response = await fetch("/api/risk", { cache: "no-store" });
+      const response = await fetch(
+        `/api/risk?scenario=${encodeURIComponent(scenario)}`,
+        { cache: "no-store" },
+      );
       const body: unknown = await response.json().catch(() => null);
 
       if (!response.ok) {
@@ -47,9 +57,14 @@ export function RiskBoard() {
     }
   }, []);
 
+  // Runs on mount and again whenever the scenario changes.
   useEffect(() => {
-    void load();
-  }, [load]);
+    void load(scenarioId);
+  }, [load, scenarioId]);
+
+  const refresh = useCallback(() => {
+    void load(scenarioId);
+  }, [load, scenarioId]);
 
   /** Search on name, province or basin; then keep only bands at or above the floor. */
   const visible = useMemo(() => {
@@ -77,7 +92,7 @@ export function RiskBoard() {
 
   if (error) {
     return (
-      <BoardError message={error} onRetry={load} isRetrying={isPending} />
+      <BoardError message={error} onRetry={refresh} isRetrying={isPending} />
     );
   }
 
@@ -92,6 +107,14 @@ export function RiskBoard() {
 
   return (
     <div className="space-y-6">
+      {board.simulated ? (
+        <SimulationBanner
+          label={board.scenario.label}
+          description={board.scenario.description}
+          onUseLive={() => setScenarioId(LIVE_SCENARIO_ID)}
+        />
+      ) : null}
+
       {worst ? (
         <HeroDistrict district={worst} generatedAt={board.generatedAt} />
       ) : null}
@@ -101,7 +124,9 @@ export function RiskBoard() {
         onQueryChange={setQuery}
         minBand={minBand}
         onMinBandChange={setMinBand}
-        onRefresh={load}
+        scenarioId={scenarioId}
+        onScenarioChange={setScenarioId}
+        onRefresh={refresh}
         isRefreshing={isPending}
         shown={visible.length}
         total={DISTRICT_COUNT}

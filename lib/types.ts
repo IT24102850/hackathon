@@ -40,6 +40,14 @@ export interface RiskBoardResponse {
   generatedAt: string;
   /** Human-readable attribution for the forecast data. */
   source: string;
+  /** Which rainfall scenario produced these scores. */
+  scenario: {
+    id: string;
+    label: string;
+    description: string;
+  };
+  /** True when rainfall was scaled for demonstration rather than read live. */
+  simulated: boolean;
   /** Every monitored district, sorted highest score first. */
   districts: DistrictRisk[];
 }

@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 
 import { DISTRICTS } from "@/lib/districts";
 import { toDistrictRisk } from "@/lib/risk";
+import { LIVE_SCENARIO_ID, resolveScenario } from "@/lib/scenarios";
 import type { DistrictRisk } from "@/lib/types";
 
 /**
- * GET /api/risk
+ * GET /api/risk[?scenario=live|monsoon|extreme]
  *
  * Fetches the rainfall forecast for all 25 districts in a single call to
  * Open-Meteo, scores each district, and returns the board sorted by score.
@@ -16,6 +17,10 @@ import type { DistrictRisk } from "@/lib/types";
  *
  * Scoring happens here rather than in the browser so the numbers on screen
  * come from one place and the client stays a thin view.
+ *
+ * A non-live `scenario` scales the rainfall before scoring so the warning
+ * bands can be exercised between monsoons. The response says which scenario
+ * was used and whether it was simulated.
  */
 
 const OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
@@ -33,7 +38,11 @@ interface OpenMeteoLocation {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const scenario = resolveScenario(
+    new URL(request.url).searchParams.get("scenario"),
+  );
+
   const query = new URLSearchParams({
     latitude: DISTRICTS.map((d) => d.latitude).join(","),
     longitude: DISTRICTS.map((d) => d.longitude).join(","),
@@ -89,7 +98,11 @@ export async function GET() {
     }
 
     // Open-Meteo sends null for a day it has no value for; treat that as 0mm.
-    const mmPerDay = daily.slice(0, FORECAST_DAYS).map((mm) => mm ?? 0);
+    // The scenario multiplier is 1 for live data and only ever scales the
+    // input — the scoring formula itself never changes.
+    const mmPerDay = daily
+      .slice(0, FORECAST_DAYS)
+      .map((mm) => (mm ?? 0) * scenario.multiplier);
     const rain24h = mmPerDay[0];
     const rain72h = mmPerDay.reduce((total, mm) => total + mm, 0);
 
@@ -102,6 +115,12 @@ export async function GET() {
     {
       generatedAt: new Date().toISOString(),
       source: "Open-Meteo forecast API",
+      scenario: {
+        id: scenario.id,
+        label: scenario.label,
+        description: scenario.description,
+      },
+      simulated: scenario.id !== LIVE_SCENARIO_ID,
       districts,
     },
     { headers: { "Cache-Control": "no-store" } },

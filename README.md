@@ -63,6 +63,12 @@ instruction rather than a colour alone:
 forecasts, with the highest-risk district raised to the top of the page.
 Searchable by district, province or river basin; filterable by minimum band;
 refreshable on demand, with proper loading, error and empty states.
+
+Because Sri Lanka is between monsoons for much of the year, the board also
+offers **simulated rainfall scenarios**, so the Severe and High bands can be
+exercised without waiting for a flood. Simulations scale the forecast input
+only — the scoring formula is untouched — and any non-live scenario shows a
+prominent "this is not a real warning" banner.
 Details: [docs/feature-1-risk-board.md](docs/feature-1-risk-board.md)
 
 _TODO — Feature 2 (Oshadhi, `feature/water-report`)_

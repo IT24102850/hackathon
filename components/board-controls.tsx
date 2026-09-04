@@ -1,6 +1,7 @@
 "use client";
 
 import { BAND_ORDER, RISK_BANDS } from "@/lib/risk";
+import { SCENARIOS } from "@/lib/scenarios";
 import type { RiskBandId } from "@/lib/types";
 
 /** Wording for the minimum-band filter, keyed by the lowest band it lets through. */
@@ -16,6 +17,8 @@ export function BoardControls({
   onQueryChange,
   minBand,
   onMinBandChange,
+  scenarioId,
+  onScenarioChange,
   onRefresh,
   isRefreshing,
   shown,
@@ -25,6 +28,8 @@ export function BoardControls({
   onQueryChange: (value: string) => void;
   minBand: RiskBandId;
   onMinBandChange: (value: RiskBandId) => void;
+  scenarioId: string;
+  onScenarioChange: (value: string) => void;
   onRefresh: () => void;
   isRefreshing: boolean;
   shown: number;
@@ -32,8 +37,8 @@ export function BoardControls({
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div className="flex-1">
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="min-w-[14rem] flex-1">
           <label
             htmlFor="district-search"
             className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-slate-300"
@@ -51,7 +56,7 @@ export function BoardControls({
           />
         </div>
 
-        <div className="sm:w-56">
+        <div className="w-full sm:w-52">
           <label
             htmlFor="band-filter"
             className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-slate-300"
@@ -74,11 +79,32 @@ export function BoardControls({
           </select>
         </div>
 
+        <div className="w-full sm:w-56">
+          <label
+            htmlFor="scenario-select"
+            className="mb-1.5 block text-xs font-medium text-slate-600 dark:text-slate-300"
+          >
+            Rainfall scenario
+          </label>
+          <select
+            id="scenario-select"
+            value={scenarioId}
+            onChange={(event) => onScenarioChange(event.target.value)}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+          >
+            {SCENARIOS.map((scenario) => (
+              <option key={scenario.id} value={scenario.id}>
+                {scenario.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <button
           type="button"
           onClick={onRefresh}
           disabled={isRefreshing}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500/40 disabled:cursor-not-allowed disabled:bg-slate-400 dark:disabled:bg-slate-700"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500/40 disabled:cursor-not-allowed disabled:bg-slate-400 sm:w-auto dark:disabled:bg-slate-700"
         >
           {isRefreshing ? (
             <>

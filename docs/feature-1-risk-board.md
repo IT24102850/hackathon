@@ -13,6 +13,7 @@ act on.
 | [lib/types.ts](../lib/types.ts) | Shared types: `District`, `DistrictRisk`, API payloads |
 | [lib/districts.ts](../lib/districts.ts) | The 25 districts, their coordinates, basin and vulnerability |
 | [lib/risk.ts](../lib/risk.ts) | Scoring, banding, and the colour/instruction attached to each band |
+| [lib/scenarios.ts](../lib/scenarios.ts) | Rainfall multipliers used to exercise the bands between monsoons |
 | [lib/format.ts](../lib/format.ts) | Millimetre and timestamp formatting |
 | [app/api/risk/route.ts](../app/api/risk/route.ts) | Server route: one Open-Meteo call, scores, sorts |
 | [components/risk-board.tsx](../components/risk-board.tsx) | Client state: fetch, search, filter, refresh, which view shows |
@@ -28,10 +29,10 @@ act on.
 | --- | --- | --- |
 | **1.1** Fetch rainfall for all 25 districts in one request | [app/api/risk/route.ts](../app/api/risk/route.ts) builds comma-separated `latitude`/`longitude` lists and calls Open-Meteo once. No API key. | Network tab: a single request to `api.open-meteo.com` returning a 25-element array |
 | **1.2** Calculate a risk score | `scoreDistrict()` in [lib/risk.ts](../lib/risk.ts) | See the worked example below |
-| **1.3** Assign a risk band | `bandForScore()` and `RISK_BANDS` in [lib/risk.ts](../lib/risk.ts) | Colour and advice text change as districts cross 30, 50 and 70 |
+| **1.3** Assign a risk band | `bandForScore()` and `RISK_BANDS` in [lib/risk.ts](../lib/risk.ts) | Switch the scenario to "Simulated monsoon": cards cross 30, 50 and 70, and their colour and advice change with them |
 | **1.4** Display the highest-risk district | [components/hero-district.tsx](../components/hero-district.tsx), fed `board.districts[0]` (the API sorts descending) | Hero names the district, both rainfall totals, its band and its instruction |
 | **1.5** Search districts | `visible` memo in [components/risk-board.tsx](../components/risk-board.tsx) — case-insensitive substring on name, province and basin | Type `kalu` → Kalutara (name) plus Ratnapura (Kalu Ganga basin) |
-| **1.6** Filter by minimum risk band | Same memo, using `bandRank()` against the selected floor | Pick "High and above" → Low and Moderate districts disappear |
+| **1.6** Filter by minimum risk band | Same memo, using `bandRank()` against the selected floor | On the monsoon scenario, pick "High and above" → Low and Moderate districts disappear and the count drops |
 | **1.7** Refresh on demand | `load()` is bound to the Refresh button; `isPending` disables it | Button reads "Refreshing…", is unclickable, and the grid dims |
 | **1.8** Handle failure | `catch` in `load()` clears the board and sets a named message; [components/board-states.tsx](../components/board-states.tsx) renders it with Retry | Block `api.open-meteo.com` in devtools, press Refresh → error card, not a blank page |
 | **1.9** Report result counts | `BoardControls` shows "Showing X of 25"; `BoardEmpty` covers no matches | Search `zzz` → count reads 0 and the empty state appears |
@@ -71,6 +72,33 @@ district that always floods never reads as completely safe.
 
 A score sitting exactly on a threshold lands in the higher band — 70 is Severe,
 not High.
+
+## Rainfall scenarios
+
+Sri Lanka sits between monsoons for much of the year. On a calm September week
+the live forecast correctly puts all 25 districts in the Low band — which makes
+the warning logic impossible to show, because you cannot wait for a flood in a
+four-hour demo.
+
+The scenario selector scales the forecast rainfall before scoring:
+
+| Scenario | Multiplier | What it represents |
+| --- | --- | --- |
+| Live forecast | ×1 | The real Open-Meteo forecast. The default, always. |
+| Simulated monsoon | ×6 | A heavy south-west monsoon week. Spreads districts across all four bands. |
+| Simulated extreme event | ×14 | The scale of the May 2017 Kalu Ganga floods. Pushes the wet zone to Severe. |
+
+Two things make this honest rather than a fake:
+
+1. It scales the **input** only. `scoreDistrict()` is never touched, so the
+   formula being demonstrated is the real one.
+2. Any non-live scenario renders an unmissable amber banner reading
+   *"Simulated data — this is not a real warning"* with a one-click return to
+   the live forecast. A deployed flood-warning page must never let an invented
+   Severe alert pass as genuine.
+
+Use "Simulated monsoon" for the demo: it is the setting that puts districts in
+all four bands at once.
 
 ## Design decisions worth defending
 
