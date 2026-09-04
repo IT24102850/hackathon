@@ -252,6 +252,7 @@
               <label class="form-label" for="description">Description<span class="required-star">*</span></label>
               <textarea id="description" name="description" class="form-textarea" placeholder="Describe what you observed — road condition, affected buildings, people displaced, any other hazards..." required></textarea>
               <div class="char-counter" id="char-counter" aria-live="polite">Characters: <span id="char-count">0</span>/300</div>
+              <span id="description-error" class="field-error" role="alert"></span>
             </div>
           </div>
           <button type="submit" id="submit-btn" class="submit-btn">Submit Field Report</button>
@@ -301,6 +302,7 @@
         var trimmedName = nameInput.value.trim();
         var mobileInput = document.getElementById("mobile-number");
         var mobileError = document.getElementById("mobile-number-error");
+        var descriptionError = document.getElementById("description-error");
 
         if (trimmedName.length < 3) {
           nameInput.classList.add("input-error");
@@ -324,6 +326,26 @@
 
         mobileInput.classList.remove("input-error");
         mobileError.classList.remove("visible");
+
+        var trimmedDescription = descriptionTextarea.value.trim();
+        if (trimmedDescription.length < 10) {
+          descriptionError.textContent = "Description must be at least 10 characters.";
+          descriptionError.classList.add("visible");
+          descriptionTextarea.classList.add("input-error");
+          descriptionTextarea.focus();
+          return;
+        }
+        if (trimmedDescription.length > MAX_CHARS) {
+          descriptionError.textContent = "Description is too long. You currently have " + trimmedDescription.length + " characters; maximum is 300.";
+          descriptionError.classList.add("visible");
+          descriptionTextarea.classList.add("input-error");
+          descriptionTextarea.focus();
+          return;
+        }
+
+        descriptionError.textContent = "";
+        descriptionError.classList.remove("visible");
+        descriptionTextarea.classList.remove("input-error");
 
         // Placeholder for FR-2.3+ submission logic
         alert("Report received. Backend submission will be implemented in FR-2.2.");
