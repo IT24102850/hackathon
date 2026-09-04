@@ -167,6 +167,15 @@
       .success-message.visible { display: block; }
       .reports-section { margin-top: 2rem; }
       .reports-heading { color: #ffffff; font-size: 1.35rem; margin-bottom: 1rem; }
+      .report-search { margin-bottom: 0.75rem; }
+      .report-search-label {
+        color: #cbd5e1;
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 0.45rem;
+      }
+      .report-result-status { color: #8a8f9e; font-size: 0.78rem; margin: 0 0 1rem; }
       .empty-state { color: #8a8f9e; font-size: 0.9rem; }
       .report-list { display: grid; gap: 1rem; }
       .submitted-report {
@@ -300,6 +309,11 @@
         </form>
         <section class="reports-section" aria-labelledby="reports-heading">
           <h2 id="reports-heading" class="reports-heading">Submitted Reports</h2>
+          <div class="report-search">
+            <label class="report-search-label" for="report-search-input">Search Submitted Reports</label>
+            <input id="report-search-input" class="form-input" type="search" placeholder="Search by town, district, or reporter name..." autocomplete="off" />
+          </div>
+          <p id="report-result-status" class="report-result-status" role="status" aria-live="polite"></p>
           <div id="report-list" class="report-list"></div>
           <p id="empty-state" class="empty-state">No community water reports yet.</p>
         </section>
@@ -331,6 +345,8 @@
       const reportForm = document.getElementById("community-report-form");
       const reportList = document.getElementById("report-list");
       const emptyState = document.getElementById("empty-state");
+      const reportSearchInput = document.getElementById("report-search-input");
+      const reportResultStatus = document.getElementById("report-result-status");
       const successMessage = document.getElementById("success-message");
       const MAX_CHARS = 300;
       const REPORTS_STORAGE_KEY = "sl-flood-warning-community-reports";
@@ -397,10 +413,23 @@
         const reports = loadReports().sort(function (first, second) {
           return new Date(second.timestamp).getTime() - new Date(first.timestamp).getTime();
         });
-        reportList.replaceChildren();
-        emptyState.hidden = reports.length > 0;
+        const searchTerm = reportSearchInput.value.trim().toLowerCase();
+        const filteredReports = searchTerm ? reports.filter(function (report) {
+          return [report.town, report.district, report.reporterName].some(function (value) {
+            return value.toLowerCase().includes(searchTerm);
+          });
+        }) : reports;
 
-        reports.forEach(function (report) {
+        reportList.replaceChildren();
+        emptyState.textContent = searchTerm && filteredReports.length === 0
+          ? "No reports found matching your search."
+          : "No community water reports yet.";
+        emptyState.hidden = filteredReports.length > 0;
+        reportResultStatus.textContent = searchTerm
+          ? "Showing " + filteredReports.length + " of " + reports.length + " reports"
+          : reports.length + " " + (reports.length === 1 ? "report" : "reports");
+
+        filteredReports.forEach(function (report) {
           const card = document.createElement("article");
           card.className = "submitted-report";
 
@@ -425,6 +454,7 @@
       }
 
       renderReports();
+      reportSearchInput.addEventListener("input", renderReports);
 
       reportForm.addEventListener("submit", function (e) {
         e.preventDefault();
