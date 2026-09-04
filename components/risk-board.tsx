@@ -12,7 +12,7 @@ import {
 import { DistrictCard } from "@/components/district-card";
 import { HeroDistrict } from "@/components/hero-district";
 import { DISTRICT_COUNT } from "@/lib/districts";
-import { bandRank } from "@/lib/risk";
+import { filterDistricts } from "@/lib/filter";
 import { LIVE_SCENARIO_ID } from "@/lib/scenarios";
 import type { RiskBandId, RiskBoardResponse } from "@/lib/types";
 
@@ -83,23 +83,10 @@ export function RiskBoard() {
   }, []);
 
   /** Search on name, province or basin; then keep bands at or above the floor. */
-  const visible = useMemo(() => {
-    if (!board) return [];
-
-    const needle = query.trim().toLowerCase();
-    const floor = bandRank(minBand);
-
-    return board.districts.filter((district) => {
-      if (bandRank(district.band) < floor) return false;
-      if (!needle) return true;
-
-      return (
-        district.name.toLowerCase().includes(needle) ||
-        district.province.toLowerCase().includes(needle) ||
-        district.basin.toLowerCase().includes(needle)
-      );
-    });
-  }, [board, query, minBand]);
+  const visible = useMemo(
+    () => (board ? filterDistricts(board.districts, { query, minBand }) : []),
+    [board, query, minBand],
+  );
 
   const clearFilters = useCallback(() => {
     setQuery("");
