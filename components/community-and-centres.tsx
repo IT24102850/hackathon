@@ -35,10 +35,7 @@ function validate(form: typeof emptyForm) {
 export function CommunityAndCentres() {
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [reports, setReports] = useState<Report[]>(() => {
-    if (typeof window === "undefined") return [];
-    try { return JSON.parse(localStorage.getItem("floodwatch-water-reports") || "[]"); } catch { return []; }
-  });
+  const [reports, setReports] = useState<Report[]>([]);
   const [reportSearch, setReportSearch] = useState("");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [centreQuery, setCentreQuery] = useState("");
@@ -50,6 +47,12 @@ export function CommunityAndCentres() {
   const [bookingNotice, setBookingNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
+    try {
+      const savedReports = JSON.parse(localStorage.getItem("floodwatch-water-reports") || "[]") as Report[];
+      if (Array.isArray(savedReports)) setReports(savedReports);
+    } catch {
+      setMessage({ type: "error", text: "Saved reports on this device could not be read." });
+    }
     void fetch("/api/water-reports", { cache: "no-store" }).then(async (response) => {
       if (response.ok) {
         const remoteReports = await response.json() as Report[];
