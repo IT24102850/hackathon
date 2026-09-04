@@ -3,7 +3,7 @@ name: Deploy static application to GitHub Pages
 on:
   push:
     branches:
-      - master
+      - feature/safe-centers
   workflow_dispatch:
 
 permissions:
