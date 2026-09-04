@@ -19,7 +19,10 @@ export default function HomePage() {
   const [bookingCentreId, setBookingCentreId] = useState<string | number | null>(null);
   const [bookingName, setBookingName] = useState<string>("");
   const [bookingGuests, setBookingGuests] = useState<number>(1);
-  const [bookingMessage, setBookingMessage] = useState<string>("");
+  const [bookingNotification, setBookingNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   // Dynamic unique districts extracted from data (FR-3.5)
   const districts = useMemo(() => getUniqueDistricts(SAFE_CENTRES), []);
@@ -111,11 +114,13 @@ export default function HomePage() {
     const requestedGuests = Math.floor(Number(bookingGuests));
 
     if (!bookingName.trim() || requestedGuests < 1 || requestedGuests > placesFree) {
-      setBookingMessage(
-        placesFree === 0
-          ? "This centre is full. Please choose another centre."
-          : `Enter between 1 and ${placesFree} available spot${placesFree === 1 ? "" : "s"}.`
-      );
+      setBookingNotification({
+        type: "error",
+        message:
+          placesFree === 0
+            ? "This centre is full. Please choose another centre."
+            : `Enter between 1 and ${placesFree} available spot${placesFree === 1 ? "" : "s"}.`
+      });
       return;
     }
 
@@ -124,9 +129,10 @@ export default function HomePage() {
       [String(selectedBookingCentre.id)]:
         (current[String(selectedBookingCentre.id)] || 0) + requestedGuests
     }));
-    setBookingMessage(
-      `${requestedGuests} spot${requestedGuests === 1 ? "" : "s"} reserved at ${selectedBookingCentre.name}.`
-    );
+    setBookingNotification({
+      type: "success",
+      message: `${requestedGuests} spot${requestedGuests === 1 ? "" : "s"} reserved at ${selectedBookingCentre.name}.`
+    });
     setBookingName("");
     setBookingGuests(1);
     setBookingCentreId(null);
@@ -361,12 +367,28 @@ export default function HomePage() {
               <div className="text-xs text-slate-400 uppercase tracking-wider">Total Capacity</div>
             </div>
           </div>
-          {bookingMessage && (
+          {bookingNotification && (
             <div
               role="status"
-              className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-sm text-center"
+              aria-live="polite"
+              className={`p-3 rounded-xl border text-sm text-center flex items-center justify-center gap-3 ${
+                bookingNotification.type === "success"
+                  ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300"
+                  : "bg-rose-500/10 border-rose-500/25 text-rose-300"
+              }`}
             >
-              {bookingMessage}
+              <span aria-hidden="true">
+                {bookingNotification.type === "success" ? "✅" : "⚠️"}
+              </span>
+              <span>{bookingNotification.message}</span>
+              <button
+                type="button"
+                onClick={() => setBookingNotification(null)}
+                aria-label="Dismiss booking notification"
+                className="text-current/70 hover:text-current font-bold cursor-pointer"
+              >
+                ×
+              </button>
             </div>
           )}
 
@@ -491,7 +513,7 @@ export default function HomePage() {
                           type="button"
                           onClick={() => {
                             setBookingCentreId(isBookingCentre ? null : centre.id);
-                            setBookingMessage("");
+                            setBookingNotification(null);
                           }}
                           className="w-full px-3 py-2 rounded-lg bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30 text-xs font-bold transition-colors cursor-pointer"
                         >
