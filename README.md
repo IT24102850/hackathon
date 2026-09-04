@@ -94,8 +94,10 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:3000>. No environment variables or API keys are needed —
-Open-Meteo is public.
+Open <http://localhost:3000>. Open-Meteo is public. Community reports, safe-centre
+details, and bookings use MongoDB when `MONGODB_URI` is configured in `.env.local`.
+Set `MONGODB_URI` to the real connection string and `MONGODB_DB=flood_warning`.
+Keep `.env.local` private and never commit it.
 
 ```bash
 npm run build   # production build

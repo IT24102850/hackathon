@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 /**
  * Site navigation.
@@ -7,12 +10,29 @@ import Link from "next/link";
  * on both desktop and mobile.
  */
 const NAV_LINKS = [
-  { href: "/", label: "Risk board" },
-  { href: "/#problem", label: "The problem" },
-  { href: "/#method", label: "How scoring works" },
+  { href: "/#risk-board", label: "Risk board", id: "risk-board" },
+  { href: "/#water-reports", label: "Water reports", id: "water-reports" },
+  { href: "/#safe-centres", label: "Safe centres", id: "safe-centres" },
+  { href: "/#problem", label: "The problem", id: "problem" },
 ];
 
 export function SiteHeader() {
+  const [activeSection, setActiveSection] = useState("risk-board");
+
+  useEffect(() => {
+    const sections = NAV_LINKS.map((link) => link.id);
+    const updateActiveSection = () => {
+      const current = sections.reduce((active, id) => {
+        const section = document.getElementById(id);
+        return section && section.getBoundingClientRect().top <= 140 ? id : active;
+      }, sections[0]);
+      setActiveSection(current);
+    };
+    updateActiveSection();
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    return () => window.removeEventListener("scroll", updateActiveSection);
+  }, []);
+
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/85 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85">
       <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
@@ -41,7 +61,8 @@ export function SiteHeader() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50"
+                  aria-current={activeSection === link.id ? "page" : undefined}
+                  className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50 ${activeSection === link.id ? "bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300" : "text-slate-600 dark:text-slate-300"}`}
                 >
                   {link.label}
                 </Link>
