@@ -25,48 +25,64 @@ import type { RiskBandId, RiskBoardResponse } from "@/lib/types";
 export function RiskBoard() {
   const [board, setBoard] = useState<RiskBoardResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Starts true: the first fetch is already on its way when we first paint.
   const [isPending, setIsPending] = useState(true);
 
   const [query, setQuery] = useState("");
   const [minBand, setMinBand] = useState<RiskBandId>("low");
   const [scenarioId, setScenarioId] = useState(LIVE_SCENARIO_ID);
+  // Bumped by Refresh to re-run the effect without changing the scenario.
+  const [reloadToken, setReloadToken] = useState(0);
 
-  const load = useCallback(async (scenario: string) => {
-    setIsPending(true);
+  useEffect(() => {
+    // Aborts the in-flight request if the scenario changes underneath it, so
+    // a slow earlier response cannot overwrite a newer one.
+    const controller = new AbortController();
 
-    try {
-      const response = await fetch(
-        `/api/risk?scenario=${encodeURIComponent(scenario)}`,
-        { cache: "no-store" },
-      );
-      const body: unknown = await response.json().catch(() => null);
+    async function loadBoard() {
+      try {
+        const response = await fetch(
+          `/api/risk?scenario=${encodeURIComponent(scenarioId)}`,
+          { cache: "no-store", signal: controller.signal },
+        );
+        const body: unknown = await response.json().catch(() => null);
 
-      if (!response.ok) {
-        throw new Error(readErrorMessage(body, response.status));
+        if (!response.ok) {
+          throw new Error(readErrorMessage(body, response.status));
+        }
+
+        setBoard(body as RiskBoardResponse);
+        setError(null);
+      } catch (caught) {
+        // A superseded request is not a failure; the newer one owns the state.
+        if (controller.signal.aborted) return;
+
+        // Drop what we were holding. A board of yesterday's rainfall presented
+        // as today's warning is worse than showing nothing at all.
+        setBoard(null);
+        setError(describeFailure(caught));
+      } finally {
+        if (!controller.signal.aborted) setIsPending(false);
       }
-
-      setBoard(body as RiskBoardResponse);
-      setError(null);
-    } catch (caught) {
-      // Drop what we were holding. A board of yesterday's rainfall presented
-      // as today's warning is worse than showing nothing at all.
-      setBoard(null);
-      setError(describeFailure(caught));
-    } finally {
-      setIsPending(false);
     }
+
+    void loadBoard();
+
+    return () => controller.abort();
+  }, [scenarioId, reloadToken]);
+
+  /** Re-fetch the same scenario. */
+  const refresh = useCallback(() => {
+    setIsPending(true);
+    setReloadToken((token) => token + 1);
   }, []);
 
-  // Runs on mount and again whenever the scenario changes.
-  useEffect(() => {
-    void load(scenarioId);
-  }, [load, scenarioId]);
+  const changeScenario = useCallback((id: string) => {
+    setIsPending(true);
+    setScenarioId(id);
+  }, []);
 
-  const refresh = useCallback(() => {
-    void load(scenarioId);
-  }, [load, scenarioId]);
-
-  /** Search on name, province or basin; then keep only bands at or above the floor. */
+  /** Search on name, province or basin; then keep bands at or above the floor. */
   const visible = useMemo(() => {
     if (!board) return [];
 
@@ -91,9 +107,7 @@ export function RiskBoard() {
   }, []);
 
   if (error) {
-    return (
-      <BoardError message={error} onRetry={refresh} isRetrying={isPending} />
-    );
+    return <BoardError message={error} onRetry={refresh} isRetrying={isPending} />;
   }
 
   if (!board) {
@@ -111,7 +125,7 @@ export function RiskBoard() {
         <SimulationBanner
           label={board.scenario.label}
           description={board.scenario.description}
-          onUseLive={() => setScenarioId(LIVE_SCENARIO_ID)}
+          onUseLive={() => changeScenario(LIVE_SCENARIO_ID)}
         />
       ) : null}
 
@@ -125,7 +139,7 @@ export function RiskBoard() {
         minBand={minBand}
         onMinBandChange={setMinBand}
         scenarioId={scenarioId}
-        onScenarioChange={setScenarioId}
+        onScenarioChange={changeScenario}
         onRefresh={refresh}
         isRefreshing={isPending}
         shown={visible.length}
