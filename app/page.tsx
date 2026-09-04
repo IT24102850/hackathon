@@ -23,6 +23,10 @@ export default function HomePage() {
     type: "success" | "error";
     message: string;
   } | null>(null);
+  const [pendingBooking, setPendingBooking] = useState<{
+    centreId: string | number;
+    guests: number;
+  } | null>(null);
 
   // Dynamic unique districts extracted from data (FR-3.5)
   const districts = useMemo(() => getUniqueDistricts(SAFE_CENTRES), []);
@@ -126,15 +130,22 @@ export default function HomePage() {
       return;
     }
 
+    setPendingBooking({ centreId: selectedBookingCentre.id, guests: requestedGuests });
+  };
+
+  const confirmBooking = () => {
+    if (!pendingBooking || !selectedBookingCentre) return;
+
     setBookedSpots((current) => ({
       ...current,
-      [String(selectedBookingCentre.id)]:
-        (current[String(selectedBookingCentre.id)] || 0) + requestedGuests
+      [String(pendingBooking.centreId)]:
+        (current[String(pendingBooking.centreId)] || 0) + pendingBooking.guests
     }));
     setBookingNotification({
       type: "success",
-      message: `${requestedGuests} spot${requestedGuests === 1 ? "" : "s"} reserved at ${selectedBookingCentre.name}.`
+      message: `${pendingBooking.guests} spot${pendingBooking.guests === 1 ? "" : "s"} reserved at ${selectedBookingCentre.name}.`
     });
+    setPendingBooking(null);
     setBookingName("");
     setBookingGuests(1);
     setBookingCentreId(null);
@@ -142,6 +153,45 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0f1a] via-[#0f1623] to-[#1a1f2f] text-white flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
+      {pendingBooking && selectedBookingCentre && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="booking-confirmation-title"
+            className="w-full max-w-md rounded-2xl border border-emerald-400/40 bg-[#101827] p-6 shadow-[0_0_40px_rgba(16,185,129,0.3)]"
+          >
+            <h2 id="booking-confirmation-title" className="text-xl font-bold text-white">
+              Confirm your reservation
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-300">
+              Are you sure you want to reserve{" "}
+              <strong className="text-emerald-300">{pendingBooking.guests} spot{pendingBooking.guests === 1 ? "" : "s"}</strong>{" "}
+              at <strong className="text-white">{selectedBookingCentre.name}</strong> for{" "}
+              <strong className="text-white">{bookingName.trim()}</strong>?
+            </p>
+            <p className="mt-2 text-xs text-amber-300">
+              This prototype reservation updates the displayed availability for this session.
+            </p>
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setPendingBooking(null)}
+                className="px-4 py-2.5 rounded-xl border border-white/20 text-slate-200 hover:bg-white/10 text-sm font-semibold cursor-pointer"
+              >
+                No, go back
+              </button>
+              <button
+                type="button"
+                onClick={confirmBooking}
+                className="px-4 py-2.5 rounded-xl bg-emerald-500 text-[#06130e] hover:bg-emerald-400 text-sm font-extrabold cursor-pointer"
+              >
+                Yes, confirm reservation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* ====================================================================
           FR-3.11: PERSISTENT NAVIGATION BAR & ARIA-CURRENT
           4 sections reachable from persistent nav, active section marked
@@ -372,8 +422,8 @@ export default function HomePage() {
           {bookingNotification && (
             <div
               role={bookingNotification.type === "error" ? "alert" : "status"}
-              aria-live="polite"
-              className={`fixed top-4 right-4 z-[100] max-w-[calc(100%-2rem)] sm:max-w-md p-4 rounded-xl border text-sm shadow-2xl flex items-center gap-3 ${
+              aria-live="assertive"
+              className={`fixed top-4 left-1/2 z-[120] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 p-5 rounded-2xl border-2 text-base font-semibold shadow-[0_0_30px_rgba(0,0,0,0.45)] flex items-center gap-3 animate-[pulse_2s_ease-in-out_1] ${
                 bookingNotification.type === "success"
                   ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-300"
                   : "bg-rose-500/10 border-rose-500/25 text-rose-300"
