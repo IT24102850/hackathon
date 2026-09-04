@@ -148,7 +148,9 @@
       .field-error.visible {
         display: block;
       }
-      .form-input.input-error {
+      .form-input.input-error,
+      .form-select.input-error,
+      .form-textarea.input-error {
         border-color: rgba(255, 51, 102, 0.6);
         box-shadow: 0 0 0 3px rgba(255, 51, 102, 0.12);
       }
@@ -182,12 +184,12 @@
             <div class="form-field">
               <label class="form-label" for="reporter-name">Reporter Name<span class="required-star">*</span></label>
               <input id="reporter-name" name="reporter_name" type="text" class="form-input" placeholder="e.g. Chamara Perera" required autocomplete="name" />
-              <span id="reporter-name-error" class="field-error" role="alert">Name must be at least 3 characters.</span>
+              <span id="name-error" class="field-error" role="alert"></span>
             </div>
             <div class="form-field">
               <label class="form-label" for="mobile-number">Mobile Number<span class="required-star">*</span></label>
               <input id="mobile-number" name="mobile_number" type="tel" class="form-input" placeholder="e.g. 0771234567" required autocomplete="tel" />
-              <span id="mobile-number-error" class="field-error" role="alert">Please enter a valid Sri Lankan mobile number.</span>
+              <span id="mobile-error" class="field-error" role="alert"></span>
             </div>
           </div>
           <hr class="form-divider" />
@@ -223,11 +225,13 @@
                   <option value="Ratnapura">Ratnapura</option>
                   <option value="Kegalle">Kegalle</option>
                 </select>
+                <span id="district-error" class="field-error" role="alert"></span>
               </div>
             </div>
             <div class="form-field">
               <label class="form-label" for="town">Town<span class="required-star">*</span></label>
               <input id="town" name="town" type="text" class="form-input" placeholder="e.g. Nugegoda" required autocomplete="address-level2" />
+              <span id="town-error" class="field-error" role="alert"></span>
             </div>
           </div>
           <hr class="form-divider" />
@@ -242,6 +246,7 @@
                   <option value="waist">Level 3 - Waist-deep (1.0 to 1.5 m)</option>
                   <option value="chest">Level 4 - Chest-deep / Impassable (above 1.5 m)</option>
                 </select>
+                <span id="water-depth-error" class="field-error" role="alert"></span>
               </div>
               <p class="depth-hint">Estimate the highest water level observed in the affected area relative to an adult standing at ground level.</p>
             </div>
@@ -296,56 +301,91 @@
       document.getElementById("community-report-form").addEventListener("submit", function (e) {
         e.preventDefault();
 
-        // FR-2.2 — Reporter Name validation (trim then check length >= 3)
         var nameInput = document.getElementById("reporter-name");
-        var nameError = document.getElementById("reporter-name-error");
+        var nameError = document.getElementById("name-error");
         var trimmedName = nameInput.value.trim();
         var mobileInput = document.getElementById("mobile-number");
-        var mobileError = document.getElementById("mobile-number-error");
+        var mobileError = document.getElementById("mobile-error");
+        var districtInput = document.getElementById("district");
+        var districtError = document.getElementById("district-error");
+        var townInput = document.getElementById("town");
+        var townError = document.getElementById("town-error");
+        var waterDepthInput = document.getElementById("water-depth");
+        var waterDepthError = document.getElementById("water-depth-error");
         var descriptionError = document.getElementById("description-error");
+        var firstInvalidField = null;
 
-        if (trimmedName.length < 3) {
-          nameInput.classList.add("input-error");
-          nameError.classList.add("visible");
-          nameInput.focus();
-          return; // stop here — do not proceed
+        function showFieldError(field, error, message) {
+          field.classList.add("input-error");
+          field.setAttribute("aria-invalid", "true");
+          field.setAttribute("aria-describedby", error.id);
+          error.textContent = message;
+          error.classList.add("visible");
+          if (!firstInvalidField) firstInvalidField = field;
         }
 
-        // Name is valid — clear any previous error
-        nameInput.classList.remove("input-error");
-        nameError.classList.remove("visible");
+        function clearFieldError(field, error) {
+          field.classList.remove("input-error");
+          field.removeAttribute("aria-invalid");
+          field.removeAttribute("aria-describedby");
+          error.textContent = "";
+          error.classList.remove("visible");
+        }
+
+        var formIsValid = true;
+
+        if (trimmedName.length < 3) {
+          showFieldError(nameInput, nameError, "Name must be at least 3 characters.");
+          formIsValid = false;
+        } else {
+          clearFieldError(nameInput, nameError);
+        }
 
         var cleanedMobile = mobileInput.value.replace(/[ -]/g, "");
         var validMobile = /^(0\d{9}|\+94\d{9})$/.test(cleanedMobile);
         if (!validMobile) {
-          mobileInput.classList.add("input-error");
-          mobileError.classList.add("visible");
-          mobileInput.focus();
-          return;
+          showFieldError(mobileInput, mobileError, "Please enter a valid Sri Lankan mobile number.");
+          formIsValid = false;
+        } else {
+          clearFieldError(mobileInput, mobileError);
         }
 
-        mobileInput.classList.remove("input-error");
-        mobileError.classList.remove("visible");
+        if (!districtInput.value) {
+          showFieldError(districtInput, districtError, "Please select a district.");
+          formIsValid = false;
+        } else {
+          clearFieldError(districtInput, districtError);
+        }
+
+        if (!townInput.value.trim()) {
+          showFieldError(townInput, townError, "Please enter a town.");
+          formIsValid = false;
+        } else {
+          clearFieldError(townInput, townError);
+        }
+
+        if (!waterDepthInput.value) {
+          showFieldError(waterDepthInput, waterDepthError, "Please select the observed water depth.");
+          formIsValid = false;
+        } else {
+          clearFieldError(waterDepthInput, waterDepthError);
+        }
 
         var trimmedDescription = descriptionTextarea.value.trim();
         if (trimmedDescription.length < 10) {
-          descriptionError.textContent = "Description must be at least 10 characters.";
-          descriptionError.classList.add("visible");
-          descriptionTextarea.classList.add("input-error");
-          descriptionTextarea.focus();
-          return;
-        }
-        if (trimmedDescription.length > MAX_CHARS) {
-          descriptionError.textContent = "Description is too long. You currently have " + trimmedDescription.length + " characters; maximum is 300.";
-          descriptionError.classList.add("visible");
-          descriptionTextarea.classList.add("input-error");
-          descriptionTextarea.focus();
-          return;
+          showFieldError(descriptionTextarea, descriptionError, "Description must be at least 10 characters.");
+          formIsValid = false;
+        } else if (trimmedDescription.length > MAX_CHARS) {
+          showFieldError(descriptionTextarea, descriptionError, "Description is too long. You currently have " + trimmedDescription.length + " characters; maximum is 300.");
+          formIsValid = false;
+        } else {
+          clearFieldError(descriptionTextarea, descriptionError);
         }
 
-        descriptionError.textContent = "";
-        descriptionError.classList.remove("visible");
-        descriptionTextarea.classList.remove("input-error");
+        if (!formIsValid) {
+          firstInvalidField.focus();
+          return;
+        }
 
         // Placeholder for FR-2.3+ submission logic
         alert("Report received. Backend submission will be implemented in FR-2.2.");
