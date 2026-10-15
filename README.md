@@ -3,10 +3,6 @@
 Live flood and landslide risk for all 25 districts of Sri Lanka, scored from
 public rainfall forecasts and turned into one instruction a household can act on.
 
-SLIIT · SE3090 Software Engineering Frameworks · Assignment 2 Mini Hackathon
-
-- **Deployed application:** _TODO — paste the Vercel URL here_
-- **Demonstration video:** _TODO — paste the OneDrive link here_
 
 ## The problem
 
@@ -71,10 +67,6 @@ only — the scoring formula is untouched — and any non-live scenario shows a
 prominent "this is not a real warning" banner.
 Details: [docs/feature-1-risk-board.md](docs/feature-1-risk-board.md)
 
-_TODO — Feature 2 (Oshadhi, `feature/water-report`)_
-
-_TODO — Feature 3 (Hasaranga, `feature/safe-centres`)_
-
 ## Technologies used
 
 | Layer | Choice | Why |
@@ -109,15 +101,8 @@ npm run lint    # eslint
 > through the mirror instead:
 > `npm install --registry=https://registry.yarnpkg.com`
 
-## Team and contributions
 
-> Written by each member in their own words, as the assignment requires.
 
-| Member | Student ID | Branch | Contribution |
-| --- | --- | --- | --- |
-| Hasiru | _TODO_ | `feature/risk-board` | _TODO — in your own words_ |
-| Oshadhi | _TODO_ | `feature/water-report` | _TODO — in your own words_ |
-| Hasaranga | _TODO_ | `feature/safe-centres` | _TODO — in your own words_ |
 
 ## AI usage declaration
 
@@ -133,8 +118,7 @@ npm run lint    # eslint
   [docs/feature-1-risk-board.md](docs/feature-1-risk-board.md), and tested the
   error and empty states by blocking the API in devtools.
 
-_TODO — add a line for every other AI tool any member used, or state
-explicitly that no others were used._
+
 
 ## Disclaimer
 
